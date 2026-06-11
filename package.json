@@ -5,13 +5,24 @@
   "type": "module",
   "scripts": {
     "compile": "node scripts/compile.mjs",
-    "deploy": "node scripts/deploy.mjs"
+    "deploy": "node scripts/deploy.mjs",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
   },
   "author": "agus-ops",
   "license": "MIT",
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "@tanstack/react-query": "^5.101.0",
+    "@vitejs/plugin-react": "^6.0.2",
     "dotenv": "^17.4.2",
     "ethers": "^6.16.0",
-    "solc": "^0.8.35"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "solc": "^0.8.35",
+    "viem": "^2.52.2",
+    "vite": "^8.0.16",
+    "wagmi": "^3.6.16"
   }
 }

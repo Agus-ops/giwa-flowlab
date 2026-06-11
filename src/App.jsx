@@ -56,6 +56,18 @@ function short(addr) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function isZeroAddress(addr) {
+  return !addr || /^0x0{40}$/i.test(addr);
+}
+
+function formatWeiText(value) {
+  try {
+    return `${formatEther(BigInt(value || 0))} ETH`;
+  } catch {
+    return "0 ETH";
+  }
+}
+
 function Card({ title, children, className = "" }) {
   return (
     <section className={`card ${className}`}>
@@ -86,6 +98,8 @@ export default function App({ ConnectButton }) {
   const [liqB, setLiqB] = useState("10");
   const [positionId, setPositionId] = useState("1");
   const [txLog, setTxLog] = useState("");
+  const [wheelSpin, setWheelSpin] = useState(false);
+  const [scratchReveal, setScratchReveal] = useState(false);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -186,6 +200,19 @@ export default function App({ ConnectButton }) {
       refetchInterval: 8_000,
     },
   });
+
+  const leaderboardRows = useMemo(() => {
+    const data = clean(top3.data || []);
+    if (!Array.isArray(data)) return [];
+
+    return data.map((row, index) => ({
+      rank: index + 1,
+      user: row.user,
+      points: row.points || "0",
+      activeDeposit: row.activeDeposit || "0",
+      reachedAt: row.reachedAt || "0",
+    }));
+  }, [top3.data]);
 
   async function runWrite(label, functionName, args = [], value) {
     try {
@@ -346,15 +373,28 @@ export default function App({ ConnectButton }) {
         {page === "arcade" && (
           <section className="grid two">
             <Card title="Daily + Wheel">
+              <div className={`wheel-visual ${wheelSpin ? "spinning" : ""}`}>
+                <div className="wheel-center">G</div>
+                <span className="wheel-pin">▼</span>
+              </div>
+
               <ActionButton
                 disabled={disabled}
-                onClick={() => runWrite("Daily Login + Spin", "dailyLoginAndSpin")}
+                onClick={async () => {
+                  setWheelSpin(true);
+                  await runWrite("Daily Login + Spin", "dailyLoginAndSpin");
+                  setTimeout(() => setWheelSpin(false), 1200);
+                }}
               >
                 Daily Login + Spin
               </ActionButton>
               <ActionButton
                 disabled={disabled}
-                onClick={() => runWrite("Spin Wheel", "spinWheel")}
+                onClick={async () => {
+                  setWheelSpin(true);
+                  await runWrite("Spin Wheel", "spinWheel");
+                  setTimeout(() => setWheelSpin(false), 1200);
+                }}
               >
                 Extra Spin Wheel
               </ActionButton>
@@ -364,11 +404,20 @@ export default function App({ ConnectButton }) {
             </Card>
 
             <Card title="Scratch Cards">
+              <div className={`scratch-visual ${scratchReveal ? "revealed" : ""}`}>
+                <span>{scratchReveal ? "Reward revealed" : "Scratch Card"}</span>
+                <strong>{scratchReveal ? "+ points / mock rewards" : "████ ████ ████"}</strong>
+              </div>
+
               <label>Scratch count</label>
               <input value={scratchCount} onChange={(e) => setScratchCount(e.target.value)} />
               <ActionButton
                 disabled={disabled}
-                onClick={() => runWrite("Scratch Batch", "scratchBatch", [Number(scratchCount)])}
+                onClick={async () => {
+                  setScratchReveal(true);
+                  await runWrite("Scratch Batch", "scratchBatch", [Number(scratchCount)]);
+                  setTimeout(() => setScratchReveal(false), 1600);
+                }}
               >
                 Scratch Batch
               </ActionButton>
@@ -401,7 +450,23 @@ export default function App({ ConnectButton }) {
             </Card>
 
             <Card title="Quote">
-              <pre>{asText(swapQuote.data)}</pre>
+              {swapQuote.data ? (
+                <div className="quote-box">
+                  <div>
+                    <span>You receive</span>
+                    <strong>{swapQuote.data[0]?.toString()} {ASSETS.find((x) => x.id === Number(swapTo))?.label}</strong>
+                  </div>
+                  <div>
+                    <span>Mock burn fee</span>
+                    <strong>{swapQuote.data[1]?.toString()} {ASSETS.find((x) => x.id === Number(swapFrom))?.label}</strong>
+                  </div>
+                  <p className="hint">
+                    Quote format from contract: amount out and mock burn fee.
+                  </p>
+                </div>
+              ) : (
+                <p className="hint">Enter a valid mock amount to preview the swap output.</p>
+              )}
             </Card>
           </section>
         )}
@@ -449,7 +514,28 @@ export default function App({ ConnectButton }) {
         {page === "leaderboard" && (
           <section className="grid two">
             <Card title="Weekly Top 3">
-              <pre>{asText(top3.data)}</pre>
+              <div className="leaderboard-list">
+                {leaderboardRows.map((row) => (
+                  <div className="leaderboard-row" key={row.rank}>
+                    <span className="rank">#{row.rank}</span>
+                    <div>
+                      {isZeroAddress(row.user) ? (
+                        <strong>Empty slot</strong>
+                      ) : (
+                        <a
+                          href={`https://sepolia-explorer.giwa.io/address/${row.user}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {short(row.user)}
+                        </a>
+                      )}
+                      <small>{formatWeiText(row.activeDeposit)}</small>
+                    </div>
+                    <strong>{row.points} pts</strong>
+                  </div>
+                ))}
+              </div>
               <p>Can finalize: {String(canFinalize.data || false)}</p>
               <ActionButton
                 disabled={!isConnected || wrongChain || isPending || receipt.isLoading}

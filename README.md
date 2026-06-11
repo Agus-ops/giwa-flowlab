@@ -78,3 +78,18 @@ Current MVP contract includes:
 - lazy permissionless finalization
 - pull-based native reward claims
 - 72-hour deposit maturity anti-Sunday-Sniper rule
+
+## Contract Verification Note
+
+The deployed GIWA FlowLab contract source code was checked locally against the on-chain deployed runtime bytecode.
+
+- Contract: `0x5574e233DC3a80634941Be43dB185AEF38266612`
+- Explorer: `https://sepolia-explorer.giwa.io/address/0x5574e233DC3a80634941Be43dB185AEF38266612`
+- Compiler: `v0.8.35+commit.47b9dedd`
+- Optimizer: enabled, 200 runs
+- EVM version from metadata: `osaka`
+- Local runtime bytes: `20605`
+- Chain runtime bytes: `20605`
+- Result: local compiled runtime bytecode exactly matches the deployed on-chain runtime bytecode.
+
+GIWA Sepolia explorer verification API currently returns `Fail - Unable to verify` for this contract, even though the bytecode match check passes. This may be related to explorer verifier support for newer Solidity/EVM metadata.

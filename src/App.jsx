@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useAccount,
   useBalance,
@@ -159,6 +159,9 @@ export default function App({ ConnectButton }) {
   const [depositAmount, setDepositAmount] = useState("0.0001");
   const [withdrawAmount, setWithdrawAmount] = useState("0.00001");
   const [scratchCount, setScratchCount] = useState("1");
+  const [scratchRewardText, setScratchRewardText] = useState("");
+  const [scratchBeforeMgiwa, setScratchBeforeMgiwa] = useState("0");
+  const [scratchTxHash, setScratchTxHash] = useState();
   const [swapFrom, setSwapFrom] = useState("0");
   const [swapTo, setSwapTo] = useState("1");
   const [swapAmount, setSwapAmount] = useState("10");
@@ -314,12 +317,55 @@ export default function App({ ConnectButton }) {
       });
       setLastHash(hash);
       setTxLog(`${label} submitted: ${hash}`);
+      return hash;
     } catch (err) {
       setTxLog(friendlyWriteError(err, label));
+      return null;
     }
   }
 
   const disabled = !isConnected || wrongChain || isPending || receipt.isLoading;
+
+  useEffect(() => {
+    if (!receipt.isSuccess || !scratchTxHash || lastHash !== scratchTxHash) return;
+
+    let cancelled = false;
+
+    async function revealScratchReward() {
+      setScratchReveal(true);
+      setScratchRewardText("Settling reward...");
+
+      await new Promise((resolve) => setTimeout(resolve, 700));
+
+      try {
+        const refreshed = await mockBalances.refetch?.();
+        const after = refreshed?.data?.[0] ?? mockBalances.data?.[0] ?? 0n;
+        const before = BigInt(scratchBeforeMgiwa || "0");
+        const delta = BigInt(after || 0) - before;
+
+        if (!cancelled) {
+          if (delta > 0n) {
+            setScratchRewardText(`+${delta.toString()} mGIWA`);
+          } else if (delta < 0n) {
+            setScratchRewardText(`${delta.toString()} mGIWA net`);
+          } else {
+            setScratchRewardText("Reward settled");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setScratchRewardText("Reward confirmed");
+        }
+      }
+    }
+
+    revealScratchReward();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [receipt.isSuccess, scratchTxHash, lastHash]);
+
 
   const nav = [
     ["home", "Home"],
@@ -538,9 +584,11 @@ export default function App({ ConnectButton }) {
             </Card>
 
             <Card title="Scratch Cards">
-              <div className={`scratch-visual ${scratchReveal ? "revealed" : ""}`}>
-                <span>{scratchReveal ? "Reward revealed" : "Scratch Card"}</span>
-                <strong>{scratchReveal ? "+ points / mock rewards" : "████ ████ ████"}</strong>
+              <div className={`scratch-visual ${scratchReveal ? "revealed scratching" : ""}`}>
+                <div className="scratch-coin">G</div>
+                <span>{scratchReveal ? "Batch reward" : "Scratch Card"}</span>
+                <strong>{scratchReveal ? (scratchRewardText || "Reward confirmed") : "████ ████ ████"}</strong>
+                <small>{scratchReveal ? `Scratch batch x${scratchCount}` : "Swipe to reveal testnet reward"}</small>
               </div>
 
               <label>Scratch count</label>
@@ -548,9 +596,18 @@ export default function App({ ConnectButton }) {
               <ActionButton
                 disabled={disabled}
                 onClick={async () => {
-                  setScratchReveal(true);
-                  await runWrite("Scratch Batch", "scratchBatch", [Number(scratchCount)]);
-                  setTimeout(() => setScratchReveal(false), 1600);
+                  setScratchReveal(false);
+                  setScratchRewardText("Waiting for confirmation...");
+                  setScratchBeforeMgiwa((mockBalances.data?.[0] ?? 0n).toString());
+
+                  const hash = await runWrite("Scratch Batch", "scratchBatch", [Number(scratchCount)]);
+
+                  if (hash) {
+                    setScratchTxHash(hash);
+                  } else {
+                    setScratchRewardText("");
+                    setScratchReveal(false);
+                  }
                 }}
               >
                 Scratch Batch

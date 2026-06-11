@@ -632,3 +632,90 @@ footer {
   text-align: right;
   word-break: break-word;
 }
+
+.scratch-visual small {
+  color: #fecaca;
+  font-weight: 700;
+}
+
+.scratch-coin {
+  position: absolute;
+  top: 54%;
+  left: 12%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 900;
+  background: radial-gradient(circle at 30% 25%, #fef3c7, #f59e0b 45%, #92400e 100%);
+  box-shadow: 0 12px 34px rgba(245, 158, 11, 0.28);
+  opacity: 0;
+  transform: rotate(-18deg);
+}
+
+.scratch-visual.scratching .scratch-coin {
+  opacity: 1;
+  animation: coinScratch 1.15s ease-in-out both;
+}
+
+.scratch-visual.scratching {
+  animation: cardRevealPulse 1.15s ease-in-out both;
+}
+
+@keyframes coinScratch {
+  0% {
+    transform: translate(0, 0) rotate(-20deg) scale(0.92);
+  }
+  20% {
+    transform: translate(80px, -28px) rotate(18deg) scale(1);
+  }
+  40% {
+    transform: translate(190px, 6px) rotate(-14deg) scale(1.03);
+  }
+  62% {
+    transform: translate(300px, -24px) rotate(20deg) scale(1);
+  }
+  82% {
+    transform: translate(410px, 10px) rotate(-8deg) scale(1.02);
+  }
+  100% {
+    transform: translate(520px, -10px) rotate(18deg) scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes cardRevealPulse {
+  0% {
+    filter: brightness(0.9);
+  }
+  55% {
+    filter: brightness(1.35);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@media (max-width: 680px) {
+  @keyframes coinScratch {
+    0% {
+      transform: translate(0, 0) rotate(-20deg) scale(0.92);
+    }
+    25% {
+      transform: translate(70px, -24px) rotate(18deg) scale(1);
+    }
+    50% {
+      transform: translate(150px, 8px) rotate(-14deg) scale(1.03);
+    }
+    75% {
+      transform: translate(230px, -22px) rotate(20deg) scale(1);
+    }
+    100% {
+      transform: translate(320px, -4px) rotate(18deg) scale(0.94);
+      opacity: 0;
+    }
+  }
+}

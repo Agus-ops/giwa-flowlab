@@ -740,15 +740,33 @@ export default function App({ ConnectButton }) {
             </Card>
 
             <Card title="Scratch Cards">
-              <div className={`scratch-visual ${scratchReveal ? "revealed scratching" : ""}`}>
+              <div className={`scratch-visual scratch-card-v2 ${scratchReveal ? "revealed scratching" : "idle"}`}>
                 <div className="scratch-coin">G</div>
-                <span>{scratchReveal ? "Batch reward" : "Scratch Card"}</span>
-                <strong>{scratchReveal ? (scratchRewardText || "Reward confirmed") : "████ ████ ████"}</strong>
-                <small>
-                  {scratchReveal
-                    ? (scratchDetailText || `Scratch batch x${scratchSubmittedCount}`)
-                    : "Swipe to reveal testnet reward"}
-                </small>
+
+                <div className="scratch-card-top">
+                  <span>{scratchReveal ? "Batch Reward" : "Scratch Card"}</span>
+                  <em>{scratchReveal ? `Batch x${scratchSubmittedCount}` : "GIWA FlowLab"}</em>
+                </div>
+
+                <div className="scratch-card-body">
+                  <strong>
+                    {scratchReveal
+                      ? (scratchRewardText || "Reward confirmed")
+                      : "Scratch to reveal"}
+                  </strong>
+                  <small>
+                    {scratchReveal
+                      ? (scratchDetailText || `Scratch batch x${scratchSubmittedCount}`)
+                      : "Reveal your batch reward after transaction confirmation"}
+                  </small>
+                </div>
+
+                {!scratchReveal && (
+                  <div className="scratch-card-footer">
+                    <span>Mock reward</span>
+                    <span>mGIWA prize</span>
+                  </div>
+                )}
               </div>
 
               <label>Scratch count</label>

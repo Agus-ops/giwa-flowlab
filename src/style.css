@@ -772,3 +772,111 @@ footer {
 .tx-box p {
   overflow-wrap: anywhere;
 }
+
+/* Scratch card v2: one clean card, no placeholder bars */
+.scratch-card-v2 {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 18% 15%, rgba(254, 202, 202, 0.18), transparent 34%),
+    radial-gradient(circle at 82% 80%, rgba(239, 68, 68, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(127, 29, 29, 0.38), rgba(0, 0, 0, 0.72)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.055) 0,
+      rgba(255,255,255,0.055) 10px,
+      rgba(255,255,255,0.018) 10px,
+      rgba(255,255,255,0.018) 22px
+    );
+}
+
+.scratch-card-v2.idle::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 18px;
+  border: 1px dashed rgba(254, 202, 202, 0.18);
+  pointer-events: none;
+}
+
+.scratch-card-v2 .scratch-card-top,
+.scratch-card-v2 .scratch-card-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.scratch-card-v2 .scratch-card-top span {
+  color: #fee2e2;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.scratch-card-v2 .scratch-card-top em {
+  color: #fca5a5;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.scratch-card-v2 .scratch-card-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  min-height: 74px;
+}
+
+.scratch-card-v2 .scratch-card-body strong {
+  color: #fff;
+  font-size: clamp(1.55rem, 5vw, 2.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.scratch-card-v2 .scratch-card-body small {
+  color: #fecaca;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.scratch-card-v2 .scratch-card-footer span {
+  padding: 8px 10px;
+  border-radius: 999px;
+  color: #fecaca;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(248, 113, 113, 0.13);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.scratch-card-v2.revealed {
+  background:
+    radial-gradient(circle at 20% 15%, rgba(134, 239, 172, 0.16), transparent 34%),
+    radial-gradient(circle at 82% 80%, rgba(239, 68, 68, 0.22), transparent 36%),
+    linear-gradient(135deg, rgba(127, 29, 29, 0.48), rgba(0, 0, 0, 0.7)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.045) 0,
+      rgba(255,255,255,0.045) 10px,
+      rgba(255,255,255,0.012) 10px,
+      rgba(255,255,255,0.012) 22px
+    );
+}
+
+.scratch-card-v2.revealed .scratch-card-body strong {
+  color: #fff;
+  text-shadow: 0 10px 34px rgba(239, 68, 68, 0.38);
+}
+
+.scratch-card-v2.revealed .scratch-card-body small {
+  color: #fee2e2;
+}

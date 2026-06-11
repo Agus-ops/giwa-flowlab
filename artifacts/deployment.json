@@ -1,0 +1,9 @@
+{
+  "network": "GIWA Sepolia",
+  "chainId": 91342,
+  "contract": "GIWAFlowLab",
+  "address": "0x5574e233DC3a80634941Be43dB185AEF38266612",
+  "deployer": "0xD2F9f6381Fb5f00c2fC606553592dB28309c019d",
+  "txHash": "0x17205b8f163b3d0c0fe9308f9101326b3f71d515b0cc4052000ec35b6c52aab8",
+  "deployedAt": "2026-06-11T20:50:27.017Z"
+}

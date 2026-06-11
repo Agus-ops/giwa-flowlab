@@ -1,0 +1,17 @@
+{
+  "name": "giwa-flowlab",
+  "version": "0.1.0",
+  "description": "GIWA FlowLab — DeFi Arcade and mock liquidity playground for GIWA Sepolia",
+  "type": "module",
+  "scripts": {
+    "compile": "node scripts/compile.mjs",
+    "deploy": "node scripts/deploy.mjs"
+  },
+  "author": "agus-ops",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ethers": "^6.16.0",
+    "solc": "^0.8.35"
+  }
+}

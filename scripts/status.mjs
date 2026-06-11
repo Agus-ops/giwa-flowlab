@@ -1,0 +1,64 @@
+import "dotenv/config";
+import fs from "fs";
+import { ethers } from "ethers";
+
+const deployment = JSON.parse(fs.readFileSync("artifacts/deployment.json", "utf8"));
+const abi = JSON.parse(fs.readFileSync("artifacts/GIWAFlowLab.abi.json", "utf8"));
+
+const provider = new ethers.JsonRpcProvider(process.env.GIWA_RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const contract = new ethers.Contract(deployment.address, abi, provider);
+
+const user = wallet.address;
+
+const balance = await provider.getBalance(deployment.address);
+const accounted = await contract.accountedNativeBalance();
+const native = await contract.getNativeAccount(user);
+const mock = await contract.getMockBalances(user);
+const round = await contract.getRoundInfo();
+const top3 = await contract.getCurrentTop3();
+const daily = await contract.getUserDailyCounter(user);
+const weekly = await contract.getUserWeeklyCounter(user);
+const positions = await contract.getUserPositions(user);
+const eligible = await contract.isNativeRewardEligible(round.roundId, user);
+const categories = await contract.activityCategoryCount(round.roundId, user);
+
+console.log("GIWA FlowLab Status");
+console.log("-------------------");
+console.log("Contract:", deployment.address);
+console.log("User:", user);
+console.log("");
+console.log("Contract balance:", ethers.formatEther(balance), "ETH");
+console.log("Accounted balance:", ethers.formatEther(accounted), "ETH");
+console.log("");
+console.log("Deposit balance:", ethers.formatEther(native.depositBalance), "ETH");
+console.log("Lifetime deposited:", ethers.formatEther(native.lifetimeDeposited), "ETH");
+console.log("Deposit reward minted:", native.depositRewardMinted.toString(), "mGIWA");
+console.log("Eligible since:", native.eligibleSince.toString());
+console.log("Native reward eligible:", eligible);
+console.log("Pending native reward:", ethers.formatEther(native.pendingReward), "ETH");
+console.log("");
+console.log("mGIWA:", mock.mGIWA.toString());
+console.log("mUSD:", mock.mUSD.toString());
+console.log("mBTC:", mock.mBTC.toString());
+console.log("");
+console.log("Round:", round.roundId.toString());
+console.log("Round start:", round.startTime.toString());
+console.log("Round end:", round.endTime.toString());
+console.log("Can finalize:", round.canFinalize);
+console.log("Activity categories:", categories.toString());
+console.log("");
+console.log("Daily login done:", daily.dailyLoginDone);
+console.log("Scratch count:", daily.scratchCount.toString());
+console.log("Wheel count:", daily.wheelCount.toString());
+console.log("Swap point done:", daily.swapPointDone);
+console.log("");
+console.log("Weekly add LP point done:", weekly.addLiquidityPointDone);
+console.log("Weekly APR point done:", weekly.claimAprPointDone);
+console.log("Quest bonus points:", weekly.questBonusPoints.toString());
+console.log("");
+console.log("Positions:", positions.map((x) => x.toString()).join(", ") || "-");
+console.log("");
+console.log("Rank1:", top3.rank1.user, "points:", top3.rank1.points.toString());
+console.log("Rank2:", top3.rank2.user, "points:", top3.rank2.points.toString());
+console.log("Rank3:", top3.rank3.user, "points:", top3.rank3.points.toString());

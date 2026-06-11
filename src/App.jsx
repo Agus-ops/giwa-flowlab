@@ -357,8 +357,15 @@ export default function App({ ConnectButton }) {
         const grossPrize = delta + totalCost;
 
         if (!cancelled) {
+          const resultText =
+            delta > 0n
+              ? `Profit: +${delta.toString()} mGIWA`
+              : delta < 0n
+                ? `Loss: ${delta.toString()} mGIWA`
+                : "Break even";
+
           setScratchRewardText(`Prize: +${grossPrize > 0n ? grossPrize.toString() : "0"} mGIWA`);
-          setScratchDetailText(`Cost: -${totalCost.toString()} mGIWA · Net: ${delta >= 0n ? "+" : ""}${delta.toString()} mGIWA`);
+          setScratchDetailText(`Cost: -${totalCost.toString()} mGIWA · ${resultText}`);
         }
       } catch {
         if (!cancelled) {

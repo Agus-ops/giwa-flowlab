@@ -92,6 +92,25 @@ function formatTimestamp(value) {
   }
 }
 
+
+function formatDuration(value) {
+  try {
+    const seconds = Number(value || 0);
+    if (!seconds) return "-";
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  } catch {
+    return "-";
+  }
+}
+
+
 function parseNativeAccount(value) {
   const v = clean(value);
   if (!v) return null;
@@ -276,6 +295,34 @@ export default function App({ ConnectButton }) {
     functionName: "pendingNativeReward",
     args: address ? [address] : undefined,
     query: { enabled: Boolean(address), refetchInterval: 12_000 },
+  });
+
+  const minNativeDeposit = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "MIN_NATIVE_DEPOSIT_FOR_REWARD",
+    query: { refetchInterval: 60_000 },
+  });
+
+  const depositMaturity = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "DEPOSIT_MATURITY",
+    query: { refetchInterval: 60_000 },
+  });
+
+  const nativeEligible = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "isNativeRewardEligible",
+    args:
+      address && currentRound.data !== undefined
+        ? [currentRound.data, address]
+        : undefined,
+    query: {
+      enabled: Boolean(address) && currentRound.data !== undefined,
+      refetchInterval: 12_000,
+    },
   });
 
   const dailyCounter = useReadContract({
@@ -571,64 +618,139 @@ export default function App({ ConnectButton }) {
         )}
 
         {page === "vault" && (
-          <section className="grid two">
-            <Card title="Native Vault">
-              <label>Deposit amount ETH</label>
-              <input value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
-              <ActionButton
-                disabled={disabled}
-                onClick={() => runWrite("Deposit Native", "depositNative", [], parseEther(depositAmount))}
-              >
-                Deposit Native
-              </ActionButton>
+          <>
+            <section className="vault-hero">
+              <div>
+                <p className="eyebrow">Native Vault</p>
+                <h2>Deposit GIWA Sepolia ETH, mint mock mGIWA, and build weekly reward eligibility.</h2>
+                <p>
+                  Vault deposits are real native testnet deposits. Rewards and arcade balances are mock, account-bound contract state for builder activity.
+                </p>
+              </div>
 
-              <label>Withdraw amount ETH</label>
-              <input value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
-              <ActionButton
-                disabled={disabled}
-                onClick={() => runWrite("Withdraw Native", "withdrawNative", [parseEther(withdrawAmount)])}
-              >
-                Withdraw Native
-              </ActionButton>
+              <div className="vault-status-panel">
+                <span className={nativeEligible.data ? "status-pill success" : "status-pill warning"}>
+                  {nativeEligible.data ? "Native reward eligible" : "Not eligible yet"}
+                </span>
+                <strong>{pendingReward.data ? formatEther(pendingReward.data) : "0"} ETH</strong>
+                <small>Pending weekly native reward</small>
+              </div>
+            </section>
 
-              <p className="hint">
-                Deposits mint mock mGIWA and feed the weekly reward pool with the configured fee split.
-              </p>
-            </Card>
-
-            <Card title="Native Account">
-              {nativeSummary ? (
-                <div className="account-summary">
+            <section className="grid two vault-layout">
+              <Card title="Deposit / Withdraw">
+                <div className="vault-action-card">
                   <div>
-                    <span>Active deposit</span>
-                    <strong>{formatWeiText(nativeSummary.activeDeposit)}</strong>
+                    <span>Minimum for reward eligibility</span>
+                    <strong>{formatWeiText(minNativeDeposit.data)}</strong>
                   </div>
                   <div>
-                    <span>Lifetime deposited</span>
-                    <strong>{formatWeiText(nativeSummary.lifetimeDeposited)}</strong>
-                  </div>
-                  <div>
-                    <span>Deposit reward minted</span>
-                    <strong>{formatMock(nativeSummary.depositRewardMinted, "mGIWA")}</strong>
-                  </div>
-                  <div>
-                    <span>Eligibility timer</span>
-                    <strong>{formatTimestamp(nativeSummary.eligibleSince)}</strong>
-                  </div>
-                  <div>
-                    <span>Pending withdrawal</span>
-                    <strong>{formatWeiText(nativeSummary.pendingWithdrawal)}</strong>
-                  </div>
-                  <div>
-                    <span>Pending native reward</span>
-                    <strong>{pendingReward.data ? formatEther(pendingReward.data) : "0"} ETH</strong>
+                    <span>Maturity window</span>
+                    <strong>{formatDuration(depositMaturity.data)}</strong>
                   </div>
                 </div>
-              ) : (
-                <p className="hint">Connect wallet to view your vault account.</p>
-              )}
-            </Card>
-          </section>
+
+                <label>Deposit amount ETH</label>
+                <input value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
+                <ActionButton
+                  disabled={disabled}
+                  onClick={() => runWrite("Deposit Native", "depositNative", [], parseEther(depositAmount))}
+                >
+                  Deposit Native
+                </ActionButton>
+
+                <label>Withdraw amount ETH</label>
+                <input value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
+                <ActionButton
+                  disabled={disabled}
+                  onClick={() => runWrite("Withdraw Native", "withdrawNative", [parseEther(withdrawAmount)])}
+                >
+                  Withdraw Native
+                </ActionButton>
+
+                <p className="hint">
+                  Deposit fee is split into weekly rewards, treasury, and emergency reserve. Withdrawing may reduce native reward eligibility.
+                </p>
+              </Card>
+
+              <Card title="Your Vault Account">
+                {nativeSummary ? (
+                  <div className="account-summary account-summary-v2">
+                    <div>
+                      <span>Active deposit</span>
+                      <strong>{formatWeiText(nativeSummary.activeDeposit)}</strong>
+                    </div>
+                    <div>
+                      <span>Lifetime deposited</span>
+                      <strong>{formatWeiText(nativeSummary.lifetimeDeposited)}</strong>
+                    </div>
+                    <div>
+                      <span>Deposit reward minted</span>
+                      <strong>{formatMock(nativeSummary.depositRewardMinted, "mGIWA")}</strong>
+                    </div>
+                    <div>
+                      <span>Eligibility timer</span>
+                      <strong>{formatTimestamp(nativeSummary.eligibleSince)}</strong>
+                    </div>
+                    <div>
+                      <span>Pending withdrawal</span>
+                      <strong>{formatWeiText(nativeSummary.pendingWithdrawal)}</strong>
+                    </div>
+                    <div>
+                      <span>Pending weekly reward</span>
+                      <strong>{pendingReward.data ? formatEther(pendingReward.data) : "0"} ETH</strong>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="hint">Connect wallet to view your vault account.</p>
+                )}
+              </Card>
+            </section>
+
+            <section className="grid three vault-info-grid">
+              <Card title="Eligibility Rules">
+                <div className="mini-rule-list">
+                  <div>
+                    <strong>Minimum active deposit</strong>
+                    <span>{formatWeiText(minNativeDeposit.data)}</span>
+                  </div>
+                  <div>
+                    <strong>Deposit maturity</strong>
+                    <span>{formatDuration(depositMaturity.data)} before round end</span>
+                  </div>
+                  <div>
+                    <strong>Activity requirement</strong>
+                    <span>At least 2 activity categories</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card title="Native Fee Split">
+                <div className="fee-bars">
+                  <div><span style={{ width: "70%" }}></span><strong>70% Weekly pool</strong></div>
+                  <div><span style={{ width: "20%" }}></span><strong>20% Treasury</strong></div>
+                  <div><span style={{ width: "10%" }}></span><strong>10% Emergency</strong></div>
+                </div>
+              </Card>
+
+              <Card title="Mock Minting">
+                <div className="mini-rule-list">
+                  <div>
+                    <strong>Mint rate</strong>
+                    <span>1 ETH = 1,000,000 mGIWA</span>
+                  </div>
+                  <div>
+                    <strong>Balance type</strong>
+                    <span>Account-bound mock state</span>
+                  </div>
+                  <div>
+                    <strong>Transferable?</strong>
+                    <span>No ERC20 transfers in MVP</span>
+                  </div>
+                </div>
+              </Card>
+            </section>
+          </>
         )}
 
         {page === "arcade" && (

@@ -880,3 +880,137 @@ footer {
 .scratch-card-v2.revealed .scratch-card-body small {
   color: #fee2e2;
 }
+
+.vault-hero {
+  display: grid;
+  grid-template-columns: 1.35fr 0.75fr;
+  gap: 14px;
+  align-items: stretch;
+  margin-top: 14px;
+  padding: 22px;
+  border: 1px solid rgba(248, 113, 113, 0.16);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(239, 68, 68, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(127, 29, 29, 0.28), rgba(12, 12, 13, 0.86));
+}
+
+.vault-hero h2 {
+  margin: 8px 0 10px;
+  font-size: clamp(1.65rem, 5vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.vault-hero p {
+  color: #fecaca;
+  line-height: 1.6;
+}
+
+.vault-status-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(248, 113, 113, 0.14);
+}
+
+.vault-status-panel strong {
+  color: #fff;
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  line-height: 1;
+}
+
+.vault-status-panel small {
+  color: #fecaca;
+  font-weight: 800;
+}
+
+.status-pill.success {
+  color: #86efac;
+  background: rgba(22, 101, 52, 0.28);
+  border: 1px solid rgba(134, 239, 172, 0.24);
+}
+
+.vault-action-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.vault-action-card div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+.vault-action-card span {
+  color: #fecaca;
+}
+
+.vault-action-card strong {
+  color: #fff;
+  text-align: right;
+}
+
+.account-summary-v2 div {
+  align-items: center;
+}
+
+.mini-rule-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-rule-list div {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+.mini-rule-list strong {
+  color: #fff;
+}
+
+.mini-rule-list span {
+  color: #fecaca;
+  line-height: 1.4;
+}
+
+.fee-bars {
+  display: grid;
+  gap: 12px;
+}
+
+.fee-bars div {
+  display: grid;
+  gap: 7px;
+}
+
+.fee-bars span {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ef4444, #7f1d1d);
+  box-shadow: 0 10px 28px rgba(239, 68, 68, 0.18);
+}
+
+.fee-bars strong {
+  color: #fecaca;
+}
+
+@media (max-width: 860px) {
+  .vault-hero {
+    grid-template-columns: 1fr;
+  }
+}

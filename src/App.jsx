@@ -160,7 +160,9 @@ export default function App({ ConnectButton }) {
   const [withdrawAmount, setWithdrawAmount] = useState("0.00001");
   const [scratchCount, setScratchCount] = useState("1");
   const [scratchRewardText, setScratchRewardText] = useState("");
+  const [scratchDetailText, setScratchDetailText] = useState("");
   const [scratchBeforeMgiwa, setScratchBeforeMgiwa] = useState("0");
+  const [scratchSubmittedCount, setScratchSubmittedCount] = useState("1");
   const [scratchTxHash, setScratchTxHash] = useState();
   const [swapFrom, setSwapFrom] = useState("0");
   const [swapTo, setSwapTo] = useState("1");
@@ -259,6 +261,13 @@ export default function App({ ConnectButton }) {
     query: { enabled: Boolean(address), refetchInterval: 12_000 },
   });
 
+  const scratchCost = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "SCRATCH_COST",
+    query: { refetchInterval: 60_000 },
+  });
+
   const isDailyCompleted = useMemo(
     () => dailyCompleted(dailyCounter.data),
     [dailyCounter.data]
@@ -342,15 +351,14 @@ export default function App({ ConnectButton }) {
         const after = refreshed?.data?.[0] ?? mockBalances.data?.[0] ?? 0n;
         const before = BigInt(scratchBeforeMgiwa || "0");
         const delta = BigInt(after || 0) - before;
+        const count = BigInt(scratchSubmittedCount || "1");
+        const costPerCard = BigInt(scratchCost.data || 0n);
+        const totalCost = count * costPerCard;
+        const grossPrize = delta + totalCost;
 
         if (!cancelled) {
-          if (delta > 0n) {
-            setScratchRewardText(`+${delta.toString()} mGIWA`);
-          } else if (delta < 0n) {
-            setScratchRewardText(`${delta.toString()} mGIWA net`);
-          } else {
-            setScratchRewardText("Reward settled");
-          }
+          setScratchRewardText(`Prize: +${grossPrize > 0n ? grossPrize.toString() : "0"} mGIWA`);
+          setScratchDetailText(`Cost: -${totalCost.toString()} mGIWA · Net: ${delta >= 0n ? "+" : ""}${delta.toString()} mGIWA`);
         }
       } catch {
         if (!cancelled) {
@@ -588,7 +596,11 @@ export default function App({ ConnectButton }) {
                 <div className="scratch-coin">G</div>
                 <span>{scratchReveal ? "Batch reward" : "Scratch Card"}</span>
                 <strong>{scratchReveal ? (scratchRewardText || "Reward confirmed") : "████ ████ ████"}</strong>
-                <small>{scratchReveal ? `Scratch batch x${scratchCount}` : "Swipe to reveal testnet reward"}</small>
+                <small>
+                  {scratchReveal
+                    ? (scratchDetailText || `Scratch batch x${scratchSubmittedCount}`)
+                    : "Swipe to reveal testnet reward"}
+                </small>
               </div>
 
               <label>Scratch count</label>
@@ -598,7 +610,9 @@ export default function App({ ConnectButton }) {
                 onClick={async () => {
                   setScratchReveal(false);
                   setScratchRewardText("Waiting for confirmation...");
+                  setScratchDetailText("");
                   setScratchBeforeMgiwa((mockBalances.data?.[0] ?? 0n).toString());
+                  setScratchSubmittedCount(scratchCount);
 
                   const hash = await runWrite("Scratch Batch", "scratchBatch", [Number(scratchCount)]);
 
@@ -606,6 +620,7 @@ export default function App({ ConnectButton }) {
                     setScratchTxHash(hash);
                   } else {
                     setScratchRewardText("");
+                    setScratchDetailText("");
                     setScratchReveal(false);
                   }
                 }}

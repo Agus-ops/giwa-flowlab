@@ -768,3 +768,7 @@ footer {
   color: #fecaca;
   font-weight: 800;
 }
+
+.tx-box p {
+  overflow-wrap: anywhere;
+}

@@ -56,6 +56,12 @@ function short(addr) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function shortenHashText(text) {
+  return String(text).replace(/0x[a-fA-F0-9]{64}/g, (hash) => {
+    return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
+  });
+}
+
 function isZeroAddress(addr) {
   return !addr || /^0x0{40}$/i.test(addr);
 }
@@ -949,7 +955,7 @@ export default function App({ ConnectButton }) {
 
         <section className="tx-box">
           <strong>Transaction status</strong>
-          <p>{txLog || "No transaction submitted yet."}</p>
+          <p>{txLog ? shortenHashText(txLog) : "No transaction submitted yet."}</p>
           {lastHash && (
             <a
               href={`https://sepolia-explorer.giwa.io/tx/${lastHash}`}

@@ -630,22 +630,41 @@ export default function App({ ConnectButton }) {
         {page === "docs" && (
           <section className="grid two">
             <Card title="Project Links">
-              <a href="https://github.com/Agus-ops/giwa-flowlab" target="_blank" rel="noreferrer">
-                GitHub Repository →
-              </a>
-              <a href={`https://sepolia-explorer.giwa.io/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">
-                GIWA Explorer Contract →
-              </a>
-              <a href="https://sepolia-rpc.giwa.io" target="_blank" rel="noreferrer">
-                GIWA Sepolia RPC →
-              </a>
+              <div className="link-stack">
+                <a href="https://github.com/Agus-ops/giwa-flowlab" target="_blank" rel="noreferrer">
+                  GitHub Repository →
+                </a>
+                <a href={`https://sepolia-explorer.giwa.io/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">
+                  GIWA Explorer Contract →
+                </a>
+                <a href="https://sepolia-rpc.giwa.io" target="_blank" rel="noreferrer">
+                  GIWA Sepolia RPC →
+                </a>
+              </div>
             </Card>
 
-            <Card title="Verification Note">
+            <Card title="Verification Status">
+              <div className="status-pill warning">Explorer verifier pending</div>
               <p>
-                Explorer API verification currently fails, but the repository includes a reproducible runtime-bytecode exact-match script.
+                The GIWA Sepolia explorer API currently fails to publish the source verification, but the deployed runtime bytecode has been checked locally against the contract source.
               </p>
-              <code>node scripts/compare_runtime.mjs</code>
+              <div className="proof-list">
+                <div>
+                  <span>Runtime bytecode</span>
+                  <strong>Exact match</strong>
+                </div>
+                <div>
+                  <span>Compiler</span>
+                  <strong>solc 0.8.35</strong>
+                </div>
+                <div>
+                  <span>EVM target</span>
+                  <strong>osaka</strong>
+                </div>
+              </div>
+              <p className="hint">
+                Reproducible verification evidence is available in the GitHub repository.
+              </p>
             </Card>
           </section>
         )}

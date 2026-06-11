@@ -552,3 +552,58 @@ footer {
   min-height: auto;
   max-height: 180px;
 }
+
+.link-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.link-stack a {
+  display: block;
+  padding: 12px 13px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 12px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 0.85rem;
+}
+
+.status-pill.warning {
+  color: #fde68a;
+  background: rgba(120, 53, 15, 0.42);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.proof-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.proof-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+.proof-list span {
+  color: #fecaca;
+}
+
+.proof-list strong {
+  color: #fff;
+  text-align: right;
+}

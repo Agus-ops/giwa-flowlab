@@ -519,3 +519,36 @@ footer {
   margin-top: 4px;
   color: #fecaca;
 }
+
+.done-banner {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 13px;
+  border-radius: 16px;
+  border: 1px solid rgba(134, 239, 172, 0.22);
+  background: rgba(22, 101, 52, 0.24);
+}
+
+.done-banner strong {
+  color: #86efac;
+}
+
+.done-banner span {
+  color: #dcfce7;
+}
+
+.mini-details {
+  margin-top: 12px;
+  color: #fecaca;
+}
+
+.mini-details summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.mini-details pre {
+  min-height: auto;
+  max-height: 180px;
+}

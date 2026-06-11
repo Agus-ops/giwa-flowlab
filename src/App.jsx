@@ -68,6 +68,44 @@ function formatWeiText(value) {
   }
 }
 
+function dailyCompleted(value) {
+  const v = clean(value);
+  if (!v) return false;
+
+  if (typeof v.dailyLoginDone === "boolean") return v.dailyLoginDone;
+  if (typeof v.loginDone === "boolean") return v.loginDone;
+  if (typeof v.done === "boolean") return v.done;
+
+  if (Array.isArray(v)) {
+    const bools = v.filter((x) => typeof x === "boolean");
+    if (bools.length) return bools[0];
+  }
+
+  return false;
+}
+
+function friendlyWriteError(err, label) {
+  const msg = String(err?.shortMessage || err?.message || err || "");
+
+  if (/user rejected|rejected request/i.test(msg)) {
+    return `${label} cancelled by wallet.`;
+  }
+
+  if (/daily|already|done|claimed|completed/i.test(msg)) {
+    return `${label} is already completed for this period.`;
+  }
+
+  if (/insufficient funds|exceeds balance/i.test(msg)) {
+    return `Not enough balance for ${label}.`;
+  }
+
+  if (/network|fetch|timeout/i.test(msg)) {
+    return `Wallet or RPC network error while submitting ${label}. Please refresh and try again.`;
+  }
+
+  return `${label} failed: ${msg}`;
+}
+
 function Card({ title, children, className = "" }) {
   return (
     <section className={`card ${className}`}>
@@ -179,6 +217,19 @@ export default function App({ ConnectButton }) {
     query: { enabled: Boolean(address), refetchInterval: 12_000 },
   });
 
+  const dailyCounter = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "getUserDailyCounter",
+    args: address ? [address] : undefined,
+    query: { enabled: Boolean(address), refetchInterval: 12_000 },
+  });
+
+  const isDailyCompleted = useMemo(
+    () => dailyCompleted(dailyCounter.data),
+    [dailyCounter.data]
+  );
+
   const quoteAmount = useMemo(() => {
     try {
       return toWhole(swapAmount);
@@ -228,7 +279,7 @@ export default function App({ ConnectButton }) {
       setLastHash(hash);
       setTxLog(`${label} submitted: ${hash}`);
     } catch (err) {
-      setTxLog(`${label} failed: ${err.shortMessage || err.message}`);
+      setTxLog(friendlyWriteError(err, label));
     }
   }
 
@@ -378,15 +429,29 @@ export default function App({ ConnectButton }) {
                 <span className="wheel-pin">▼</span>
               </div>
 
+              {isDailyCompleted ? (
+                <div className="done-banner">
+                  <strong>Daily completed today</strong>
+                  <span>Come back tomorrow for the next login + spin.</span>
+                </div>
+              ) : (
+                <p className="hint">Daily login is available for this wallet.</p>
+              )}
+
               <ActionButton
-                disabled={disabled}
+                disabled={disabled || isDailyCompleted}
                 onClick={async () => {
+                  if (isDailyCompleted) {
+                    setTxLog("Daily Login + Spin is already completed today.");
+                    return;
+                  }
+
                   setWheelSpin(true);
                   await runWrite("Daily Login + Spin", "dailyLoginAndSpin");
                   setTimeout(() => setWheelSpin(false), 1200);
                 }}
               >
-                Daily Login + Spin
+                {isDailyCompleted ? "Completed Today" : "Daily Login + Spin"}
               </ActionButton>
               <ActionButton
                 disabled={disabled}
@@ -401,6 +466,11 @@ export default function App({ ConnectButton }) {
               <p className="hint">
                 Daily and arcade actions generate weekly points and mock-only rewards.
               </p>
+
+              <details className="mini-details">
+                <summary>Daily counter</summary>
+                <pre>{asText(dailyCounter.data)}</pre>
+              </details>
             </Card>
 
             <Card title="Scratch Cards">

@@ -68,6 +68,37 @@ function formatWeiText(value) {
   }
 }
 
+function formatMock(value, symbol = "") {
+  try {
+    return `${BigInt(value || 0).toString()}${symbol ? ` ${symbol}` : ""}`;
+  } catch {
+    return `0${symbol ? ` ${symbol}` : ""}`;
+  }
+}
+
+function formatTimestamp(value) {
+  try {
+    const n = Number(value || 0);
+    if (!n) return "Not eligible yet";
+    return new Date(n * 1000).toLocaleString();
+  } catch {
+    return "Not eligible yet";
+  }
+}
+
+function parseNativeAccount(value) {
+  const v = clean(value);
+  if (!v) return null;
+
+  return {
+    activeDeposit: v.activeDeposit ?? v[0] ?? "0",
+    lifetimeDeposited: v.lifetimeDeposited ?? v[1] ?? "0",
+    depositRewardMinted: v.depositRewardMinted ?? v[2] ?? "0",
+    eligibleSince: v.eligibleSince ?? v[3] ?? "0",
+    pendingWithdrawal: v.pendingWithdrawal ?? v[4] ?? "0",
+  };
+}
+
 function dailyCompleted(value) {
   const v = clean(value);
   if (!v) return false;
@@ -228,6 +259,11 @@ export default function App({ ConnectButton }) {
   const isDailyCompleted = useMemo(
     () => dailyCompleted(dailyCounter.data),
     [dailyCounter.data]
+  );
+
+  const nativeSummary = useMemo(
+    () => parseNativeAccount(nativeAccount.data),
+    [nativeAccount.data]
   );
 
   const quoteAmount = useMemo(() => {
@@ -415,8 +451,36 @@ export default function App({ ConnectButton }) {
             </Card>
 
             <Card title="Native Account">
-              <pre>{asText(nativeAccount.data)}</pre>
-              <p>Pending native reward: {pendingReward.data ? formatEther(pendingReward.data) : "0"} ETH</p>
+              {nativeSummary ? (
+                <div className="account-summary">
+                  <div>
+                    <span>Active deposit</span>
+                    <strong>{formatWeiText(nativeSummary.activeDeposit)}</strong>
+                  </div>
+                  <div>
+                    <span>Lifetime deposited</span>
+                    <strong>{formatWeiText(nativeSummary.lifetimeDeposited)}</strong>
+                  </div>
+                  <div>
+                    <span>Deposit reward minted</span>
+                    <strong>{formatMock(nativeSummary.depositRewardMinted, "mGIWA")}</strong>
+                  </div>
+                  <div>
+                    <span>Eligibility timer</span>
+                    <strong>{formatTimestamp(nativeSummary.eligibleSince)}</strong>
+                  </div>
+                  <div>
+                    <span>Pending withdrawal</span>
+                    <strong>{formatWeiText(nativeSummary.pendingWithdrawal)}</strong>
+                  </div>
+                  <div>
+                    <span>Pending native reward</span>
+                    <strong>{pendingReward.data ? formatEther(pendingReward.data) : "0"} ETH</strong>
+                  </div>
+                </div>
+              ) : (
+                <p className="hint">Connect wallet to view your vault account.</p>
+              )}
             </Card>
           </section>
         )}

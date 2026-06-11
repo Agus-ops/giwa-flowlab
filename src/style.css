@@ -607,3 +607,28 @@ footer {
   color: #fff;
   text-align: right;
 }
+
+.account-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.account-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+.account-summary span {
+  color: #fecaca;
+}
+
+.account-summary strong {
+  color: #fff;
+  text-align: right;
+  word-break: break-word;
+}

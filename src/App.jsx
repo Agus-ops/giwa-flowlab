@@ -115,6 +115,19 @@ function dailyCompleted(value) {
   return false;
 }
 
+function parseDailyCounter(value) {
+  const v = clean(value);
+  if (!v) return null;
+
+  return {
+    dayBucket: v.dayBucket ?? v.dayId ?? v[0] ?? "-",
+    scratchScore: v.scratchScore ?? v.scratchPoints ?? v[1] ?? "0",
+    wheelScore: v.wheelScore ?? v.wheelPoints ?? v[2] ?? "0",
+    dailyDone: v.dailyLoginDone ?? v.loginDone ?? v[3] ?? false,
+    freeSpinDone: v.freeSpinDone ?? v.wheelDone ?? v[4] ?? false,
+  };
+}
+
 function friendlyWriteError(err, label) {
   const msg = String(err?.shortMessage || err?.message || err || "");
 
@@ -164,6 +177,12 @@ export default function App({ ConnectButton }) {
   const [scratchBeforeMgiwa, setScratchBeforeMgiwa] = useState("0");
   const [scratchSubmittedCount, setScratchSubmittedCount] = useState("1");
   const [scratchTxHash, setScratchTxHash] = useState();
+
+  const [wheelRewardText, setWheelRewardText] = useState("");
+  const [wheelDetailText, setWheelDetailText] = useState("");
+  const [wheelBeforeMgiwa, setWheelBeforeMgiwa] = useState("0");
+  const [wheelSubmittedMode, setWheelSubmittedMode] = useState("");
+  const [wheelTxHash, setWheelTxHash] = useState();
   const [swapFrom, setSwapFrom] = useState("0");
   const [swapTo, setSwapTo] = useState("1");
   const [swapAmount, setSwapAmount] = useState("10");
@@ -268,6 +287,13 @@ export default function App({ ConnectButton }) {
     query: { refetchInterval: 60_000 },
   });
 
+  const extraWheelCost = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "EXTRA_WHEEL_COST",
+    query: { refetchInterval: 60_000 },
+  });
+
   const isDailyCompleted = useMemo(
     () => dailyCompleted(dailyCounter.data),
     [dailyCounter.data]
@@ -276,6 +302,11 @@ export default function App({ ConnectButton }) {
   const nativeSummary = useMemo(
     () => parseNativeAccount(nativeAccount.data),
     [nativeAccount.data]
+  );
+
+  const dailySummary = useMemo(
+    () => parseDailyCounter(dailyCounter.data),
+    [dailyCounter.data]
   );
 
   const quoteAmount = useMemo(() => {
@@ -380,6 +411,54 @@ export default function App({ ConnectButton }) {
       cancelled = true;
     };
   }, [receipt.isSuccess, scratchTxHash, lastHash]);
+
+  useEffect(() => {
+    if (!receipt.isSuccess || !wheelTxHash || lastHash !== wheelTxHash) return;
+
+    let cancelled = false;
+
+    async function revealWheelReward() {
+      setWheelSpin(true);
+      setWheelRewardText("Settling spin reward...");
+      setWheelDetailText("");
+
+      await new Promise((resolve) => setTimeout(resolve, 700));
+
+      try {
+        const refreshed = await mockBalances.refetch?.();
+        const after = refreshed?.data?.[0] ?? mockBalances.data?.[0] ?? 0n;
+        const before = BigInt(wheelBeforeMgiwa || "0");
+        const delta = BigInt(after || 0) - before;
+        const totalCost = wheelSubmittedMode === "extra" ? BigInt(extraWheelCost.data || 0n) : 0n;
+        const grossPrize = delta + totalCost;
+
+        if (!cancelled) {
+          const resultText =
+            delta > 0n
+              ? `Profit: +${delta.toString()} mGIWA`
+              : delta < 0n
+                ? `Loss: ${delta.toString()} mGIWA`
+                : "Break even";
+
+          setWheelRewardText(`Prize: +${grossPrize > 0n ? grossPrize.toString() : "0"} mGIWA`);
+          setWheelDetailText(`Cost: -${totalCost.toString()} mGIWA · ${resultText}`);
+          setTimeout(() => setWheelSpin(false), 900);
+        }
+      } catch {
+        if (!cancelled) {
+          setWheelRewardText("Spin confirmed");
+          setTimeout(() => setWheelSpin(false), 900);
+        }
+      }
+    }
+
+    revealWheelReward();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [receipt.isSuccess, wheelTxHash, lastHash]);
+
 
 
   const nav = [
@@ -563,6 +642,24 @@ export default function App({ ConnectButton }) {
                 <p className="hint">Daily login is available for this wallet.</p>
               )}
 
+              <div className="spin-cost-grid">
+                <div>
+                  <span>Daily login + spin</span>
+                  <strong>Free</strong>
+                </div>
+                <div>
+                  <span>Extra spin cost</span>
+                  <strong>{formatMock(extraWheelCost.data, "mGIWA")}</strong>
+                </div>
+              </div>
+
+              {wheelRewardText && (
+                <div className="spin-result-card">
+                  <strong>{wheelRewardText}</strong>
+                  <span>{wheelDetailText || "Spin reward confirmed"}</span>
+                </div>
+              )}
+
               <ActionButton
                 disabled={disabled || isDailyCompleted}
                 onClick={async () => {
@@ -571,9 +668,19 @@ export default function App({ ConnectButton }) {
                     return;
                   }
 
-                  setWheelSpin(true);
-                  await runWrite("Daily Login + Spin", "dailyLoginAndSpin");
-                  setTimeout(() => setWheelSpin(false), 1200);
+                  setWheelRewardText("Waiting for confirmation...");
+                  setWheelDetailText("");
+                  setWheelBeforeMgiwa((mockBalances.data?.[0] ?? 0n).toString());
+                  setWheelSubmittedMode("daily");
+
+                  const hash = await runWrite("Daily Login + Spin", "dailyLoginAndSpin");
+
+                  if (hash) {
+                    setWheelTxHash(hash);
+                  } else {
+                    setWheelRewardText("");
+                    setWheelDetailText("");
+                  }
                 }}
               >
                 {isDailyCompleted ? "Completed Today" : "Daily Login + Spin"}
@@ -581,9 +688,19 @@ export default function App({ ConnectButton }) {
               <ActionButton
                 disabled={disabled}
                 onClick={async () => {
-                  setWheelSpin(true);
-                  await runWrite("Spin Wheel", "spinWheel");
-                  setTimeout(() => setWheelSpin(false), 1200);
+                  setWheelRewardText("Waiting for confirmation...");
+                  setWheelDetailText("");
+                  setWheelBeforeMgiwa((mockBalances.data?.[0] ?? 0n).toString());
+                  setWheelSubmittedMode("extra");
+
+                  const hash = await runWrite("Spin Wheel", "spinWheel");
+
+                  if (hash) {
+                    setWheelTxHash(hash);
+                  } else {
+                    setWheelRewardText("");
+                    setWheelDetailText("");
+                  }
                 }}
               >
                 Extra Spin Wheel
@@ -592,10 +709,28 @@ export default function App({ ConnectButton }) {
                 Daily and arcade actions generate weekly points and mock-only rewards.
               </p>
 
-              <details className="mini-details">
-                <summary>Daily counter</summary>
-                <pre>{asText(dailyCounter.data)}</pre>
-              </details>
+              <div className="daily-summary">
+                <div>
+                  <span>Daily bucket</span>
+                  <strong>{dailySummary?.dayBucket?.toString?.() || "-"}</strong>
+                </div>
+                <div>
+                  <span>Scratch score today</span>
+                  <strong>{dailySummary?.scratchScore?.toString?.() || "0"}</strong>
+                </div>
+                <div>
+                  <span>Wheel score today</span>
+                  <strong>{dailySummary?.wheelScore?.toString?.() || "0"}</strong>
+                </div>
+                <div>
+                  <span>Daily login</span>
+                  <strong>{dailySummary?.dailyDone ? "Completed" : "Available"}</strong>
+                </div>
+                <div>
+                  <span>Free spin</span>
+                  <strong>{dailySummary?.freeSpinDone ? "Used" : "Available"}</strong>
+                </div>
+              </div>
             </Card>
 
             <Card title="Scratch Cards">

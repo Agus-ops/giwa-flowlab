@@ -719,3 +719,52 @@ footer {
     }
   }
 }
+
+.spin-cost-grid,
+.daily-summary {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.spin-cost-grid div,
+.daily-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+.spin-cost-grid span,
+.daily-summary span {
+  color: #fecaca;
+}
+
+.spin-cost-grid strong,
+.daily-summary strong {
+  color: #fff;
+  text-align: right;
+}
+
+.spin-result-card {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0;
+  padding: 14px;
+  border-radius: 17px;
+  background: rgba(127, 29, 29, 0.36);
+  border: 1px solid rgba(248, 113, 113, 0.22);
+}
+
+.spin-result-card strong {
+  color: #fff;
+  font-size: 1.18rem;
+}
+
+.spin-result-card span {
+  color: #fecaca;
+  font-weight: 800;
+}

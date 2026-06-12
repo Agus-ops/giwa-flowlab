@@ -12,3 +12,8 @@ yarn-error.log*
 coverage/
 dist/
 build/
+
+# Local V2 compile outputs
+artifacts/GIWAFlowLabV2.abi.json
+artifacts/GIWAFlowLabV2.bytecode.txt
+artifacts/GIWAFlowLabV2.deployedBytecode.txt

@@ -1945,10 +1945,10 @@ export default function App({ ConnectButton }) {
               </Card>
 
               <Card title="Verification Status">
-                <span className="status-pill warning">Explorer verifier pending</span>
+                <span className="status-pill success">Explorer verified</span>
 
                 <p className="hint">
-                  GIWA Sepolia explorer verification can be unreliable for this deployment flow. Source, scripts, deployment metadata, and reproducible compile steps are kept in the public repository.
+                  GIWA FlowLab V2 is verified on GIWA Sepolia explorer using exact Standard JSON input. Source, scripts, deployment metadata, and reproducible compile steps are kept in the public repository.
                 </p>
 
                 <div className="info-list">

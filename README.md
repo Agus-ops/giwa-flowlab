@@ -231,8 +231,10 @@ The project keeps reproducible source, scripts, and deployment metadata in the p
 Current verification status:
 
 - V1 runtime bytecode exact-match proof was documented previously.
-- V2 source and deployment metadata are included in this repository.
-- Explorer verifier support may be unreliable for this deployment flow, so the repository is kept as the primary reproducibility record.
+- V2 is verified on GIWA Sepolia explorer.
+- Verification result: `Pass - Verified`.
+- Exact Standard JSON input was used for verification.
+- Source, scripts, and deployment metadata are included in this repository.
 
 Compiler settings used for V2:
 

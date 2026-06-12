@@ -846,7 +846,7 @@ export default function App({ ConnectButton }) {
                     </div>
                     <div>
                       <span>Deposit reward minted</span>
-                      <strong>{formatMock(nativeSummary.depositRewardMinted, "mGIWA")}</strong>
+                      <strong>{formatMockAmount(nativeSummary.depositRewardMinted, ASSETS[0]) + " mGIWA"}</strong>
                     </div>
                     <div>
                       <span>Eligibility timer</span>

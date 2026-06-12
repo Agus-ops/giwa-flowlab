@@ -419,6 +419,9 @@ export default function App({ ConnectButton }) {
     quoteOut !== undefined && BigInt(quoteOut || 0) === 0n;
   const mBtcOutputTooSmall =
     quoteOutIsZero && Number(swapTo) === 2 && Number(swapFrom) !== 2;
+  const swapInputBalance = mockBalances.data?.[Number(swapFrom)] ?? 0n;
+  const insufficientSwapBalance =
+    quoteAmount !== null && BigInt(swapInputBalance || 0) < quoteAmount;
 
 
   const leaderboardRows = useMemo(() => {
@@ -976,7 +979,8 @@ export default function App({ ConnectButton }) {
                       }
                     }}
                   >
-                    {x.label}
+                    <span>{x.label}</span>
+                    <small>Bal {formatWholeUnits(mockBalances.data?.[x.id] ?? 0n)}</small>
                   </button>
                 ))}
               </div>
@@ -1009,7 +1013,8 @@ export default function App({ ConnectButton }) {
                       }
                     }}
                   >
-                    {x.label}
+                    <span>{x.label}</span>
+                    <small>Bal {formatWholeUnits(mockBalances.data?.[x.id] ?? 0n)}</small>
                   </button>
                 ))}
               </div>
@@ -1017,8 +1022,22 @@ export default function App({ ConnectButton }) {
               <label>Amount, whole mock units</label>
               <input value={swapAmount} onChange={(e) => setSwapAmount(e.target.value)} />
 
+              <div className="swap-balance-line">
+                <span>Available: {formatWholeUnits(swapInputBalance)} {fromAsset?.label}</span>
+                <button
+                  type="button"
+                  onClick={() => setSwapAmount(formatWholeUnits(swapInputBalance).replaceAll(",", ""))}
+                >
+                  Max
+                </button>
+              </div>
+
+              {insufficientSwapBalance && (
+                <p className="swap-warning">Amount exceeds available {fromAsset?.label} balance.</p>
+              )}
+
               <ActionButton
-                disabled={disabled || swapFrom === swapTo}
+                disabled={disabled || swapFrom === swapTo || insufficientSwapBalance}
                 onClick={() => runWrite("Mock Swap", "swapMock", [Number(swapFrom), Number(swapTo), toWhole(swapAmount)])}
               >
                 Swap Mock
@@ -1028,6 +1047,10 @@ export default function App({ ConnectButton }) {
             <Card title="Quote">
               {swapQuote.data ? (
                 <div className="quote-box">
+                  <div>
+                    <span>You pay</span>
+                    <strong>{formatWholeUnits(quoteAmount)} {fromAsset?.label}</strong>
+                  </div>
                   <div>
                     <span>You receive</span>
                     <strong>{formatWholeUnits(quoteOut)} {toAsset?.label}</strong>

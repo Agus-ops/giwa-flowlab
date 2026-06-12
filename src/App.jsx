@@ -645,8 +645,8 @@ export default function App({ ConnectButton }) {
                     <strong>{formatWeiText(minNativeDeposit.data)}</strong>
                   </div>
                   <div>
-                    <span>Maturity window</span>
-                    <strong>{formatDuration(depositMaturity.data)}</strong>
+                    <span>Required maturity</span>
+                    <strong>{formatDuration(depositMaturity.data)} before round end</strong>
                   </div>
                 </div>
 
@@ -715,7 +715,7 @@ export default function App({ ConnectButton }) {
                     <span>{formatWeiText(minNativeDeposit.data)}</span>
                   </div>
                   <div>
-                    <strong>Deposit maturity</strong>
+                    <strong>Required maturity</strong>
                     <span>{formatDuration(depositMaturity.data)} before round end</span>
                   </div>
                   <div>

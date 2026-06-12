@@ -6,7 +6,8 @@ It combines a native testnet vault, account-bound mock assets, daily arcade loop
 
 ## Live Links
 
-- Live app: https://agus-ops.github.io/giwa-flowlab/
+- Live app: https://giwa-flowlab.vercel.app
+- GitHub Pages mirror: https://agus-ops.github.io/giwa-flowlab/
 - Repository: https://github.com/Agus-ops/giwa-flowlab
 - GIWA Sepolia RPC: https://sepolia-rpc.giwa.io
 - GIWA Sepolia Explorer: https://sepolia-explorer.giwa.io

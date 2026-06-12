@@ -17,3 +17,4 @@ build/
 artifacts/GIWAFlowLabV2.abi.json
 artifacts/GIWAFlowLabV2.bytecode.txt
 artifacts/GIWAFlowLabV2.deployedBytecode.txt
+.vercel

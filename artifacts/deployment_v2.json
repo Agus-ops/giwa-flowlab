@@ -1,0 +1,18 @@
+{
+  "network": "GIWA Sepolia",
+  "chainId": 91342,
+  "contract": "GIWAFlowLabV2",
+  "version": "V2",
+  "address": "0x735E91dA8687eb583D252c33da4396f4b287a949",
+  "deployer": "0xD2F9f6381Fb5f00c2fC606553592dB28309c019d",
+  "txHash": "0xc3d43a35ad37823290a162e95dc2e4ec3ce69dd7bad400143cad43ffbc0be2a0",
+  "deployedAt": "2026-06-12T00:40:41.975Z",
+  "notes": [
+    "Decimal-aware mock accounting",
+    "mGIWA decimals: 18",
+    "mUSD decimals: 18",
+    "mBTC decimals: 8",
+    "1 mBTC = 100,000 mUSD",
+    "1 mGIWA = 1 mUSD"
+  ]
+}

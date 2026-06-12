@@ -8,14 +8,10 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import { formatEther, parseEther } from "viem";
-import { CONTRACT_ABI, CONTRACT_ADDRESS, GIWA_SEPOLIA } from "./contract.js";
+import { formatEther, parseEther, parseUnits } from "viem";
+import { CONTRACT_ABI, CONTRACT_ADDRESS, GIWA_SEPOLIA, MOCK_ASSETS } from "./contract.js";
 
-const ASSETS = [
-  { id: 0, label: "mGIWA" },
-  { id: 1, label: "mUSD" },
-  { id: 2, label: "mBTC" },
-];
+const ASSETS = MOCK_ASSETS;
 
 const PAIRS = [
   { id: 0, label: "mGIWA / mUSD" },
@@ -82,12 +78,85 @@ function formatMock(value, symbol = "") {
   }
 }
 
+function getAsset(assetOrId) {
+  if (assetOrId && typeof assetOrId === "object") return assetOrId;
+  return ASSETS.find((x) => x.id === Number(assetOrId)) || ASSETS[0];
+}
+
+function sanitizeAmountInput(value) {
+  return String(value ?? "").trim().replaceAll(",", "");
+}
+
+function parseMockAmount(value, assetOrId) {
+  const asset = getAsset(assetOrId);
+  const v = sanitizeAmountInput(value);
+
+  if (!/^\d+(\.\d+)?$/.test(v)) {
+    throw new Error("Use a valid decimal amount.");
+  }
+
+  return parseUnits(v, asset.decimals);
+}
+
+function formatMockAmount(value, assetOrId, options = {}) {
+  try {
+    const asset = getAsset(assetOrId);
+    const decimals = BigInt(asset.decimals);
+    const maxDecimals = options.maxDecimals ?? (asset.id === 2 ? 8 : 6);
+    const group = options.group ?? true;
+
+    let raw = BigInt(value || 0);
+    const sign = raw < 0n ? "-" : "";
+    if (raw < 0n) raw = -raw;
+
+    const unit = 10n ** decimals;
+    const whole = raw / unit;
+    const fractionRaw = raw % unit;
+
+    const wholeText = group ? whole.toLocaleString("en-US") : whole.toString();
+    let fraction = fractionRaw.toString().padStart(Number(decimals), "0");
+
+    if (maxDecimals >= 0) {
+      fraction = fraction.slice(0, maxDecimals);
+    }
+
+    fraction = fraction.replace(/0+$/, "");
+
+    return `${sign}${wholeText}${fraction ? `.${fraction}` : ""}`;
+  } catch {
+    return "0";
+  }
+}
+
+function formatMockInput(value, assetOrId) {
+  const asset = getAsset(assetOrId);
+  return formatMockAmount(value, asset, {
+    group: false,
+    maxDecimals: asset.decimals,
+  });
+}
+
+function formatSignedMockAmount(value, assetOrId) {
+  const raw = BigInt(value || 0);
+  if (raw > 0n) return `+${formatMockAmount(raw, assetOrId)}`;
+  if (raw < 0n) return `-${formatMockAmount(-raw, assetOrId)}`;
+  return "0";
+}
+
 function formatWholeUnits(value) {
   try {
     return BigInt(value || 0).toLocaleString("en-US");
   } catch {
     return "0";
   }
+}
+
+function getPairAssetIds(pairId) {
+  const id = Number(pairId);
+  if (id === 0) return [0, 1];
+  if (id === 1) return [0, 2];
+  if (id === 2) return [1, 2];
+  return [0, 1];
 }
 
 function getRateHint(fromId, toId) {
@@ -389,13 +458,16 @@ export default function App({ ConnectButton }) {
     [dailyCounter.data]
   );
 
+  const fromAsset = ASSETS.find((x) => x.id === Number(swapFrom));
+  const toAsset = ASSETS.find((x) => x.id === Number(swapTo));
+
   const quoteAmount = useMemo(() => {
     try {
-      return toWhole(swapAmount);
+      return parseMockAmount(swapAmount, fromAsset);
     } catch {
       return null;
     }
-  }, [swapAmount]);
+  }, [swapAmount, swapFrom]);
 
   const swapQuote = useReadContract({
     address: CONTRACT_ADDRESS,
@@ -410,9 +482,6 @@ export default function App({ ConnectButton }) {
       refetchInterval: 8_000,
     },
   });
-
-  const fromAsset = ASSETS.find((x) => x.id === Number(swapFrom));
-  const toAsset = ASSETS.find((x) => x.id === Number(swapTo));
   const quoteOut = swapQuote.data?.[0];
   const quoteFee = swapQuote.data?.[1];
   const quoteOutIsZero =
@@ -423,8 +492,16 @@ export default function App({ ConnectButton }) {
   const swapInputBalanceIsZero = BigInt(swapInputBalance || 0n) === 0n;
   const invalidSwapAmount =
     quoteAmount === null || BigInt(quoteAmount || 0n) <= 0n;
+  const zeroSettlementOutput =
+    !invalidSwapAmount &&
+    quoteOut !== undefined &&
+    BigInt(quoteOut || 0n) === 0n;
   const insufficientSwapBalance =
     quoteAmount !== null && BigInt(swapInputBalance || 0n) < quoteAmount;
+
+  const [liqTokenAId, liqTokenBId] = getPairAssetIds(pairId);
+  const liqAssetA = ASSETS.find((x) => x.id === liqTokenAId);
+  const liqAssetB = ASSETS.find((x) => x.id === liqTokenBId);
 
 
   const leaderboardRows = useMemo(() => {
@@ -486,13 +563,13 @@ export default function App({ ConnectButton }) {
         if (!cancelled) {
           const resultText =
             delta > 0n
-              ? `Profit: +${delta.toString()} mGIWA`
+              ? `Profit: ${formatSignedMockAmount(delta, ASSETS[0])} mGIWA`
               : delta < 0n
-                ? `Loss: ${delta.toString()} mGIWA`
+                ? `Loss: ${formatSignedMockAmount(delta, ASSETS[0])} mGIWA`
                 : "Break even";
 
-          setScratchRewardText(`Prize: +${grossPrize > 0n ? grossPrize.toString() : "0"} mGIWA`);
-          setScratchDetailText(`Cost: -${totalCost.toString()} mGIWA · ${resultText}`);
+          setScratchRewardText(`Prize: +${formatMockAmount(grossPrize > 0n ? grossPrize : 0n, ASSETS[0])} mGIWA`);
+          setScratchDetailText(`Cost: -${formatMockAmount(totalCost, ASSETS[0])} mGIWA · ${resultText}`);
         }
       } catch {
         if (!cancelled) {
@@ -531,13 +608,13 @@ export default function App({ ConnectButton }) {
         if (!cancelled) {
           const resultText =
             delta > 0n
-              ? `Profit: +${delta.toString()} mGIWA`
+              ? `Profit: ${formatSignedMockAmount(delta, ASSETS[0])} mGIWA`
               : delta < 0n
-                ? `Loss: ${delta.toString()} mGIWA`
+                ? `Loss: ${formatSignedMockAmount(delta, ASSETS[0])} mGIWA`
                 : "Break even";
 
-          setWheelRewardText(`Prize: +${grossPrize > 0n ? grossPrize.toString() : "0"} mGIWA`);
-          setWheelDetailText(`Cost: -${totalCost.toString()} mGIWA · ${resultText}`);
+          setWheelRewardText(`Prize: +${formatMockAmount(grossPrize > 0n ? grossPrize : 0n, ASSETS[0])} mGIWA`);
+          setWheelDetailText(`Cost: -${formatMockAmount(totalCost, ASSETS[0])} mGIWA · ${resultText}`);
           setTimeout(() => setWheelSpin(false), 900);
         }
       } catch {
@@ -648,13 +725,13 @@ export default function App({ ConnectButton }) {
 
             <section className="grid three">
               <Card title="mGIWA">
-                <div className="big-number">{mockBalances.data?.[0]?.toString() || "0"}</div>
+                <div className="big-number">{formatMockAmount(mockBalances.data?.[0] ?? 0n, ASSETS[0])}</div>
               </Card>
               <Card title="mUSD">
-                <div className="big-number">{mockBalances.data?.[1]?.toString() || "0"}</div>
+                <div className="big-number">{formatMockAmount(mockBalances.data?.[1] ?? 0n, ASSETS[1])}</div>
               </Card>
               <Card title="mBTC">
-                <div className="big-number">{mockBalances.data?.[2]?.toString() || "0"}</div>
+                <div className="big-number">{formatMockAmount(mockBalances.data?.[2] ?? 0n, ASSETS[2])}</div>
               </Card>
             </section>
           </>
@@ -983,7 +1060,7 @@ export default function App({ ConnectButton }) {
                     }}
                   >
                     <span>{x.label}</span>
-                    <small>Bal {formatWholeUnits(mockBalances.data?.[x.id] ?? 0n)}</small>
+                    <small>Bal {formatMockAmount(mockBalances.data?.[x.id] ?? 0n, x)}</small>
                   </button>
                 ))}
               </div>
@@ -1001,7 +1078,7 @@ export default function App({ ConnectButton }) {
 
               <div className={`selected-balance-card ${swapInputBalanceIsZero ? "empty" : ""}`}>
                 <span>Selected balance</span>
-                <strong>{formatWholeUnits(swapInputBalance)} {fromAsset?.label}</strong>
+                <strong>{formatMockAmount(swapInputBalance, fromAsset)} {fromAsset?.label}</strong>
                 <small>
                   {swapInputBalanceIsZero
                     ? `No ${fromAsset?.label} available. Earn or swap into ${fromAsset?.label} first.`
@@ -1027,19 +1104,19 @@ export default function App({ ConnectButton }) {
                     }}
                   >
                     <span>{x.label}</span>
-                    <small>Bal {formatWholeUnits(mockBalances.data?.[x.id] ?? 0n)}</small>
+                    <small>Bal {formatMockAmount(mockBalances.data?.[x.id] ?? 0n, x)}</small>
                   </button>
                 ))}
               </div>
 
-              <label>Amount, whole mock units</label>
+              <label>Amount ({fromAsset?.label})</label>
               <input value={swapAmount} onChange={(e) => setSwapAmount(e.target.value)} />
 
               <div className="swap-balance-line">
-                <span>Available: {formatWholeUnits(swapInputBalance)} {fromAsset?.label}</span>
+                <span>Available: {formatMockAmount(swapInputBalance, fromAsset)} {fromAsset?.label}</span>
                 <button
                   type="button"
-                  onClick={() => setSwapAmount(formatWholeUnits(swapInputBalance).replaceAll(",", ""))}
+                  onClick={() => setSwapAmount(formatMockInput(swapInputBalance, fromAsset))}
                 >
                   Max
                 </button>
@@ -1054,8 +1131,8 @@ export default function App({ ConnectButton }) {
               )}
 
               <ActionButton
-                disabled={disabled || swapFrom === swapTo || invalidSwapAmount || insufficientSwapBalance}
-                onClick={() => runWrite("Mock Swap", "swapMock", [Number(swapFrom), Number(swapTo), toWhole(swapAmount)])}
+                disabled={disabled || swapFrom === swapTo || invalidSwapAmount || insufficientSwapBalance || zeroSettlementOutput}
+                onClick={() => runWrite("Mock Swap", "swapMock", [Number(swapFrom), Number(swapTo), quoteAmount ?? 0n])}
               >
                 Swap Mock
               </ActionButton>
@@ -1066,15 +1143,15 @@ export default function App({ ConnectButton }) {
                 <div className="quote-box">
                   <div>
                     <span>You pay</span>
-                    <strong>{formatWholeUnits(quoteAmount)} {fromAsset?.label}</strong>
+                    <strong>{formatMockAmount(quoteAmount, fromAsset)} {fromAsset?.label}</strong>
                   </div>
                   <div>
                     <span>You receive</span>
-                    <strong>{formatWholeUnits(quoteOut)} {toAsset?.label}</strong>
+                    <strong>{formatMockAmount(quoteOut, toAsset)} {toAsset?.label}</strong>
                   </div>
                   <div>
                     <span>Mock burn fee</span>
-                    <strong>{formatWholeUnits(quoteFee)} {fromAsset?.label}</strong>
+                    <strong>{formatMockAmount(quoteFee, fromAsset)} {fromAsset?.label}</strong>
                   </div>
                   <div>
                     <span>Rate</span>
@@ -1085,13 +1162,13 @@ export default function App({ ConnectButton }) {
                     <div className="quote-warning">
                       <strong>Amount too small for mBTC</strong>
                       <span>
-                        This swap rounds down to 0 mBTC because mBTC uses large fixed-rate units. Try at least about 101,010 {fromAsset?.label} for 1 mBTC after fee.
+                        This amount is below the minimum decimal settlement for mBTC. Try a slightly larger input.
                       </span>
                     </div>
                   )}
 
                   <p className="hint">
-                    Quote is calculated live from the contract. Output uses whole mock units, so very small mBTC swaps can round down to zero.
+                    Quote is calculated live from the V2 contract. mGIWA and mUSD use 18 decimals; mBTC uses 8 decimals.
                   </p>
                 </div>
               ) : (
@@ -1109,15 +1186,15 @@ export default function App({ ConnectButton }) {
                 {PAIRS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
               </select>
 
-              <label>Amount A</label>
+              <label>Amount A ({liqAssetA?.label})</label>
               <input value={liqA} onChange={(e) => setLiqA(e.target.value)} />
 
-              <label>Amount B</label>
+              <label>Amount B ({liqAssetB?.label})</label>
               <input value={liqB} onChange={(e) => setLiqB(e.target.value)} />
 
               <ActionButton
                 disabled={disabled}
-                onClick={() => runWrite("Add Liquidity", "addLiquidity", [Number(pairId), toWhole(liqA), toWhole(liqB)])}
+                onClick={() => runWrite("Add Liquidity", "addLiquidity", [Number(pairId), parseMockAmount(liqA, liqAssetA), parseMockAmount(liqB, liqAssetB)])}
               >
                 Add Liquidity
               </ActionButton>

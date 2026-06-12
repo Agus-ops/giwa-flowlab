@@ -1,4 +1,5 @@
-export const CONTRACT_ADDRESS = "0x5574e233DC3a80634941Be43dB185AEF38266612";
+export const CONTRACT_ADDRESS = "0x735E91dA8687eb583D252c33da4396f4b287a949";
+export const CONTRACT_VERSION = "V2";
 
 export const GIWA_SEPOLIA = {
   id: 91342,
@@ -23,6 +24,12 @@ export const GIWA_SEPOLIA = {
     },
   },
 };
+
+export const MOCK_ASSETS = [
+  { id: 0, symbol: "mGIWA", label: "mGIWA", decimals: 18 },
+  { id: 1, symbol: "mUSD", label: "mUSD", decimals: 18 },
+  { id: 2, symbol: "mBTC", label: "mBTC", decimals: 8 },
+];
 
 export const CONTRACT_ABI = [
   {
@@ -1016,6 +1023,45 @@ export const CONTRACT_ABI = [
   },
   {
     "inputs": [],
+    "name": "MBTC_PRICE_MUSD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MBTC_UNIT",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MGIWA_UNIT",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "MIN_LP_VALUE",
     "outputs": [
       {
@@ -1056,6 +1102,19 @@ export const CONTRACT_ABI = [
   {
     "inputs": [],
     "name": "MOCK_SWAP_FEE_BPS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MUSD_UNIT",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1570,7 +1629,7 @@ export const CONTRACT_ABI = [
             "type": "uint64"
           }
         ],
-        "internalType": "struct GIWAFlowLab.TopUser",
+        "internalType": "struct GIWAFlowLabV2.TopUser",
         "name": "rank1",
         "type": "tuple"
       },
@@ -1597,7 +1656,7 @@ export const CONTRACT_ABI = [
             "type": "uint64"
           }
         ],
-        "internalType": "struct GIWAFlowLab.TopUser",
+        "internalType": "struct GIWAFlowLabV2.TopUser",
         "name": "rank2",
         "type": "tuple"
       },
@@ -1624,7 +1683,7 @@ export const CONTRACT_ABI = [
             "type": "uint64"
           }
         ],
-        "internalType": "struct GIWAFlowLab.TopUser",
+        "internalType": "struct GIWAFlowLabV2.TopUser",
         "name": "rank3",
         "type": "tuple"
       }
@@ -2213,7 +2272,7 @@ export const CONTRACT_ABI = [
             "type": "uint64"
           }
         ],
-        "internalType": "struct GIWAFlowLab.TopUser",
+        "internalType": "struct GIWAFlowLabV2.TopUser",
         "name": "rank1",
         "type": "tuple"
       },
@@ -2240,7 +2299,7 @@ export const CONTRACT_ABI = [
             "type": "uint64"
           }
         ],
-        "internalType": "struct GIWAFlowLab.TopUser",
+        "internalType": "struct GIWAFlowLabV2.TopUser",
         "name": "rank2",
         "type": "tuple"
       },
@@ -2267,7 +2326,7 @@ export const CONTRACT_ABI = [
             "type": "uint64"
           }
         ],
-        "internalType": "struct GIWAFlowLab.TopUser",
+        "internalType": "struct GIWAFlowLabV2.TopUser",
         "name": "rank3",
         "type": "tuple"
       }

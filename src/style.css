@@ -1051,3 +1051,24 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+.quote-warning {
+  display: grid !important;
+  gap: 6px !important;
+  justify-content: initial !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  color: #fde68a;
+  background: rgba(120, 53, 15, 0.32) !important;
+  border: 1px solid rgba(251, 191, 36, 0.22) !important;
+}
+
+.quote-warning strong {
+  color: #fde68a !important;
+  text-align: left !important;
+}
+
+.quote-warning span {
+  color: #fef3c7 !important;
+  line-height: 1.45;
+}

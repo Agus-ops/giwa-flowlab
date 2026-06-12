@@ -82,6 +82,33 @@ function formatMock(value, symbol = "") {
   }
 }
 
+function formatWholeUnits(value) {
+  try {
+    return BigInt(value || 0).toLocaleString("en-US");
+  } catch {
+    return "0";
+  }
+}
+
+function getRateHint(fromId, toId) {
+  const from = Number(fromId);
+  const to = Number(toId);
+
+  if ((from === 0 || from === 1) && to === 2) {
+    return "100,000 mUSD-equivalent = 1 mBTC";
+  }
+
+  if (from === 2 && (to === 0 || to === 1)) {
+    return "1 mBTC = 100,000 mUSD-equivalent";
+  }
+
+  if ((from === 0 && to === 1) || (from === 1 && to === 0)) {
+    return "1 mGIWA = 1 mUSD";
+  }
+
+  return "Fixed-rate mock swap";
+}
+
 function formatTimestamp(value) {
   try {
     const n = Number(value || 0);
@@ -383,6 +410,16 @@ export default function App({ ConnectButton }) {
       refetchInterval: 8_000,
     },
   });
+
+  const fromAsset = ASSETS.find((x) => x.id === Number(swapFrom));
+  const toAsset = ASSETS.find((x) => x.id === Number(swapTo));
+  const quoteOut = swapQuote.data?.[0];
+  const quoteFee = swapQuote.data?.[1];
+  const quoteOutIsZero =
+    quoteOut !== undefined && BigInt(quoteOut || 0) === 0n;
+  const mBtcOutputTooSmall =
+    quoteOutIsZero && Number(swapTo) === 2 && Number(swapFrom) !== 2;
+
 
   const leaderboardRows = useMemo(() => {
     const data = clean(top3.data || []);
@@ -993,14 +1030,28 @@ export default function App({ ConnectButton }) {
                 <div className="quote-box">
                   <div>
                     <span>You receive</span>
-                    <strong>{swapQuote.data[0]?.toString()} {ASSETS.find((x) => x.id === Number(swapTo))?.label}</strong>
+                    <strong>{formatWholeUnits(quoteOut)} {toAsset?.label}</strong>
                   </div>
                   <div>
                     <span>Mock burn fee</span>
-                    <strong>{swapQuote.data[1]?.toString()} {ASSETS.find((x) => x.id === Number(swapFrom))?.label}</strong>
+                    <strong>{formatWholeUnits(quoteFee)} {fromAsset?.label}</strong>
                   </div>
+                  <div>
+                    <span>Rate</span>
+                    <strong>{getRateHint(swapFrom, swapTo)}</strong>
+                  </div>
+
+                  {mBtcOutputTooSmall && (
+                    <div className="quote-warning">
+                      <strong>Amount too small for mBTC</strong>
+                      <span>
+                        This swap rounds down to 0 mBTC because mBTC uses large fixed-rate units. Try at least about 101,010 {fromAsset?.label} for 1 mBTC after fee.
+                      </span>
+                    </div>
+                  )}
+
                   <p className="hint">
-                    Quote format from contract: amount out and mock burn fee.
+                    Quote is calculated live from the contract. Output uses whole mock units, so very small mBTC swaps can round down to zero.
                   </p>
                 </div>
               ) : (

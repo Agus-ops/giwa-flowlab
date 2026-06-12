@@ -1254,3 +1254,54 @@ footer {
     display: grid;
   }
 }
+
+/* Make Swap balance panel readable on mobile/desktop-mode browsers */
+.mock-balance-grid {
+  grid-template-columns: 1fr !important;
+}
+
+.mock-balance-chip {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+}
+
+.mock-balance-chip span {
+  font-size: 0.9rem;
+}
+
+.mock-balance-chip strong {
+  font-size: clamp(1.45rem, 5vw, 2.15rem);
+  text-align: right;
+  color: #fff;
+}
+
+.mock-balance-chip small {
+  text-align: right;
+  min-width: 72px;
+}
+
+.mock-balance-head span {
+  font-size: 1rem;
+}
+
+.mock-balance-head small {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .mock-balance-chip {
+    grid-template-columns: 68px 1fr;
+  }
+
+  .mock-balance-chip small {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
+  .mock-balance-chip strong {
+    text-align: right;
+  }
+}

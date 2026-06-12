@@ -152,6 +152,12 @@ function formatWholeUnits(value) {
   }
 }
 
+const LIQUIDITY_PAIR_DEFAULTS = {
+  0: ["50", "50"],
+  1: ["50", "0.0005"],
+  2: ["50", "0.0005"],
+};
+
 function getPairAssetIds(pairId) {
   const id = Number(pairId);
   if (id === 0) return [0, 1];
@@ -1637,9 +1643,24 @@ export default function App({ ConnectButton }) {
             <section className="grid two">
               <Card title="Add Simulated Liquidity">
                 <label>Pair</label>
-                <select value={pairId} onChange={(e) => setPairId(e.target.value)}>
-                  {PAIRS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-                </select>
+                <div className="pair-choice-grid">
+                  {PAIRS.map((x) => (
+                    <button
+                      type="button"
+                      key={x.id}
+                      className={`pair-choice ${Number(pairId) === x.id ? "active" : ""}`}
+                      onClick={() => {
+                        setPairId(String(x.id));
+                        const defaults = LIQUIDITY_PAIR_DEFAULTS[x.id] || LIQUIDITY_PAIR_DEFAULTS[0];
+                        setLiqA(defaults[0]);
+                        setLiqB(defaults[1]);
+                      }}
+                    >
+                      <span>{x.label}</span>
+                      <strong>{getPairAprLabel(x.id)} APR</strong>
+                    </button>
+                  ))}
+                </div>
 
                 <label>Amount A ({liqAssetA?.label})</label>
                 <input value={liqA} onChange={(e) => setLiqA(e.target.value)} />

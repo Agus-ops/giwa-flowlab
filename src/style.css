@@ -2240,3 +2240,59 @@ body {
   border-color: rgba(248, 113, 113, 0.22);
   background: rgba(127, 29, 29, 0.22);
 }
+
+.pair-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 8px 0 18px;
+}
+
+.pair-choice {
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  padding: 13px 14px;
+  min-height: 74px;
+  border-radius: 17px;
+  border: 1px solid rgba(248, 113, 113, 0.18);
+  background: rgba(0, 0, 0, 0.26);
+  color: #fecaca;
+  cursor: pointer;
+}
+
+.pair-choice span {
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
+.pair-choice strong {
+  color: #fca5a5;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.pair-choice.active {
+  border-color: rgba(248, 113, 113, 0.72);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(248, 113, 113, 0.3), transparent 42%),
+    linear-gradient(135deg, rgba(127, 29, 29, 0.72), rgba(0, 0, 0, 0.32));
+  box-shadow: 0 14px 32px rgba(127, 29, 29, 0.26);
+}
+
+.pair-choice.active strong {
+  color: #fff;
+}
+
+@media (max-width: 720px) {
+  .pair-choice-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .pair-choice {
+    min-height: 58px;
+    padding: 12px 13px;
+  }
+}

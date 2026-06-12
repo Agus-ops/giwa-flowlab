@@ -1657,7 +1657,7 @@ export default function App({ ConnectButton }) {
                       }}
                     >
                       <span>{x.label}</span>
-                      <strong>{getPairAprLabel(x.id)} APR</strong>
+                      <strong>{getPairAprLabel(x.id)}</strong>
                     </button>
                   ))}
                 </div>

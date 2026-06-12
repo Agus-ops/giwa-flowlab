@@ -1800,62 +1800,109 @@ export default function App({ ConnectButton }) {
         )}
 
         {page === "docs" && (
-          <section className="grid two">
-            <Card title="Project Links">
-              <div className="link-stack">
-                <a href="https://github.com/Agus-ops/giwa-flowlab" target="_blank" rel="noreferrer">
-                  GitHub Repository →
-                </a>
-                <a href={`https://sepolia-explorer.giwa.io/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">
-                  GIWA Explorer Contract →
-                </a>
-                <a href="https://sepolia-rpc.giwa.io" target="_blank" rel="noreferrer">
-                  GIWA Sepolia RPC →
-                </a>
+          <>
+            <section className="vault-hero docs-hero">
+              <div>
+                <p className="eyebrow">Builder Documentation</p>
+                <h2>GIWA FlowLab is a live V2 testnet dApp with on-chain vault, arcade, swap, LP, and leaderboard flows.</h2>
+                <p>
+                  This page collects the public proof links, active contract details, decimal model, and verification notes for the demo.
+                </p>
               </div>
-            </Card>
 
-            <Card title="Verification Status">
-              <div className="status-pill warning">Explorer verifier pending</div>
-              <p>
-                The GIWA Sepolia explorer API currently fails to publish the source verification, but the deployed runtime bytecode has been checked locally against the contract source.
-              </p>
-              <div className="proof-list">
-                <div>
-                  <span>Runtime bytecode</span>
-                  <strong>Exact match</strong>
-                </div>
-                <div>
-                  <span>Compiler</span>
-                  <strong>solc 0.8.35</strong>
-                </div>
-                <div>
-                  <span>EVM target</span>
-                  <strong>osaka</strong>
-                </div>
+              <div className="vault-status-panel">
+                <span className="status-pill success">{CONTRACT_VERSION || "V2"} active</span>
+                <strong>{short(CONTRACT_ADDRESS)}</strong>
+                <small>Current frontend contract</small>
               </div>
-              <p className="hint">
-                Reproducible verification evidence is available in the GitHub repository.
-              </p>
-            </Card>
-          </section>
+            </section>
+
+            <section className="grid three docs-stats">
+              <Card title="Active Contract">
+                <div className="big-number tiny">{short(CONTRACT_ADDRESS)}</div>
+                <p className="hint">Frontend is connected to GIWA FlowLab V2.</p>
+              </Card>
+
+              <Card title="Mock Decimals">
+                <div className="info-list compact">
+                  <div><span>mGIWA</span><strong>18</strong></div>
+                  <div><span>mUSD</span><strong>18</strong></div>
+                  <div><span>mBTC</span><strong>8</strong></div>
+                </div>
+              </Card>
+
+              <Card title="Price Model">
+                <div className="info-list compact">
+                  <div><span>mGIWA</span><strong>1 mUSD</strong></div>
+                  <div><span>mBTC</span><strong>100,000 mUSD</strong></div>
+                  <div><span>Swap fee</span><strong>1%</strong></div>
+                </div>
+              </Card>
+            </section>
+
+            <section className="grid two">
+              <Card title="Project Links">
+                <div className="link-stack">
+                  <a href="https://github.com/Agus-ops/giwa-flowlab" target="_blank" rel="noreferrer">
+                    GitHub Repository →
+                  </a>
+                  <a href={`https://sepolia-explorer.giwa.io/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">
+                    Active V2 Contract →
+                  </a>
+                  <a href="https://sepolia-explorer.giwa.io/address/0x5574e233DC3a80634941Be43dB185AEF38266612" target="_blank" rel="noreferrer">
+                    Archived V1 Contract →
+                  </a>
+                  <a href="https://sepolia-rpc.giwa.io" target="_blank" rel="noreferrer">
+                    GIWA Sepolia RPC →
+                  </a>
+                </div>
+              </Card>
+
+              <Card title="Verification Status">
+                <span className="status-pill warning">Explorer verifier pending</span>
+
+                <p className="hint">
+                  GIWA Sepolia explorer verification can be unreliable for this deployment flow. Source, scripts, deployment metadata, and reproducible compile steps are kept in the public repository.
+                </p>
+
+                <div className="info-list">
+                  <div><span>Compiler</span><strong>solc 0.8.35</strong></div>
+                  <div><span>EVM target</span><strong>osaka</strong></div>
+                  <div><span>Optimizer</span><strong>200 runs</strong></div>
+                  <div><span>Frontend</span><strong>GitHub Pages</strong></div>
+                </div>
+              </Card>
+            </section>
+
+            <section className="grid two docs-bottom-grid">
+              <Card title="Version History">
+                <div className="version-timeline">
+                  <div>
+                    <span>V1</span>
+                    <strong>Initial MVP contract</strong>
+                    <small>Whole-unit mock accounting. Kept as archived builder footprint.</small>
+                  </div>
+                  <div>
+                    <span>V2</span>
+                    <strong>Active decimal-aware engine</strong>
+                    <small>mGIWA/mUSD 18 decimals, mBTC 8 decimals, live decimal quote and swap.</small>
+                  </div>
+                </div>
+              </Card>
+
+              <Card title="What This Demo Proves">
+                <div className="info-list">
+                  <div><span>Vault</span><strong>Native deposit + mock minting</strong></div>
+                  <div><span>Arcade</span><strong>Daily, wheel, scratch actions</strong></div>
+                  <div><span>Swap</span><strong>Decimal-aware fixed-rate mock swap</strong></div>
+                  <div><span>Liquidity</span><strong>On-chain LP positions + APR</strong></div>
+                  <div><span>Leaderboard</span><strong>Weekly points and reward flow</strong></div>
+                </div>
+              </Card>
+            </section>
+          </>
         )}
 
-        <section className="tx-box">
-          <strong>Transaction status</strong>
-          <p>{txLog ? shortenHashText(txLog) : "No transaction submitted yet."}</p>
-          {lastHash && (
-            <a
-              href={`https://sepolia-explorer.giwa.io/tx/${lastHash}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View latest tx →
-            </a>
-          )}
-          {receipt.isLoading && <p>Waiting for confirmation...</p>}
-          {receipt.isSuccess && <p className="success">Confirmed.</p>}
-        </section>
       </main>
 
       <footer>

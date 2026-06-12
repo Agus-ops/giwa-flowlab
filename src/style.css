@@ -1535,3 +1535,55 @@ footer {
     font-size: 0.72rem;
   }
 }
+
+/* High-contrast topbar motif: copper batik against dark app background */
+.topbar {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.68)),
+    radial-gradient(circle at 18% 45%, rgba(251, 146, 60, 0.28), transparent 28%),
+    radial-gradient(circle at 78% 38%, rgba(248, 113, 113, 0.24), transparent 32%),
+    linear-gradient(135deg, #1b0505, #050202 48%, #240707) !important;
+}
+
+.topbar::before {
+  opacity: 1 !important;
+  background-image:
+    radial-gradient(ellipse at 18% 45%, transparent 0 16px, rgba(251, 191, 36, 0.42) 17px 19px, transparent 20px),
+    radial-gradient(ellipse at 70% 55%, transparent 0 22px, rgba(251, 146, 60, 0.34) 23px 25px, transparent 26px),
+    repeating-radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.18) 0 1px, transparent 2px 9px),
+    repeating-linear-gradient(135deg, transparent 0 14px, rgba(251, 146, 60, 0.28) 15px 17px, transparent 18px 34px),
+    repeating-linear-gradient(45deg, transparent 0 22px, rgba(248, 113, 113, 0.18) 23px 25px, transparent 26px 50px) !important;
+  background-size:
+    150px 92px,
+    190px 118px,
+    72px 72px,
+    128px 128px,
+    160px 160px !important;
+  background-position:
+    0 0,
+    80px -16px,
+    center,
+    right center,
+    left bottom !important;
+  filter: saturate(1.35) contrast(1.15);
+}
+
+.topbar::after {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.18) 45%, rgba(0, 0, 0, 0.7)),
+    radial-gradient(circle at 10% 50%, rgba(251, 146, 60, 0.24), transparent 25%),
+    radial-gradient(circle at 88% 35%, rgba(248, 113, 113, 0.22), transparent 28%) !important;
+}
+
+.brand strong {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+.brand small {
+  color: #fed7aa !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+.wallet-box {
+  backdrop-filter: blur(10px);
+}

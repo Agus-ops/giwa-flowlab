@@ -2324,3 +2324,71 @@ body {
   font-weight: 950;
   white-space: nowrap;
 }
+
+/* Fix readable label/value rows on Home, Docs, Vault, and reserve cards */
+.info-list {
+  display: grid !important;
+  gap: 9px !important;
+}
+
+.info-list > div {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding: 10px 12px !important;
+  border-radius: 13px !important;
+  background: rgba(0, 0, 0, 0.24) !important;
+  border: 1px solid rgba(248, 113, 113, 0.10) !important;
+}
+
+.info-list span {
+  color: #fecaca !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  min-width: 0 !important;
+}
+
+.info-list strong {
+  color: #fff !important;
+  font-weight: 950 !important;
+  line-height: 1.25 !important;
+  text-align: right !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.info-list.compact {
+  gap: 7px !important;
+}
+
+.info-list.compact > div {
+  padding: 8px 10px !important;
+}
+
+.protocol-reserves > div:first-child,
+.protocol-reserves > div:nth-child(2) {
+  border-color: rgba(248, 113, 113, 0.25) !important;
+  background: rgba(127, 29, 29, 0.25) !important;
+}
+
+.protocol-reserves strong {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .info-list > div {
+    gap: 10px !important;
+    padding: 9px 10px !important;
+  }
+
+  .info-list span,
+  .info-list strong {
+    font-size: 0.88rem !important;
+  }
+
+  .protocol-reserves strong {
+    white-space: normal;
+  }
+}

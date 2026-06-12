@@ -405,6 +405,39 @@ export default function App({ ConnectButton }) {
     query: { refetchInterval: 12_000 },
   });
 
+  const emergencyReserve = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "emergencyReserve",
+    chainId: GIWA_SEPOLIA.id,
+    query: { refetchInterval: 12_000 },
+  });
+
+  const sponsorWeeklyReserve = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "sponsorWeeklyReserve",
+    chainId: GIWA_SEPOLIA.id,
+    query: { refetchInterval: 12_000 },
+  });
+
+  const weeklyFeePool = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "weeklyFeePool",
+    chainId: GIWA_SEPOLIA.id,
+    query: { refetchInterval: 12_000 },
+  });
+
+  const treasuryPool = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "treasuryPool",
+    chainId: GIWA_SEPOLIA.id,
+    query: { refetchInterval: 12_000 },
+  });
+
+
   const currentRound = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
@@ -559,6 +592,10 @@ export default function App({ ConnectButton }) {
         top3.refetch?.(),
         roundInfo.refetch?.(),
         contractBalance.refetch?.(),
+        emergencyReserve.refetch?.(),
+        sponsorWeeklyReserve.refetch?.(),
+        weeklyFeePool.refetch?.(),
+        treasuryPool.refetch?.(),
       ]);
     }
 
@@ -906,6 +943,31 @@ export default function App({ ConnectButton }) {
                   {contractBalance.data ? formatEther(contractBalance.data.value) : "0"} ETH
                 </div>
               </Card>
+
+                <Card title="Protocol Reserves">
+                  <div className="info-list protocol-reserves">
+                    <div>
+                      <span>Emergency Reserve</span>
+                      <strong>{emergencyReserve.data ? `${Number(formatEther(emergencyReserve.data)).toLocaleString(undefined, { maximumFractionDigits: 8 })} ETH` : "0 ETH"}</strong>
+                    </div>
+                    <div>
+                      <span>Sponsor Weekly Reserve</span>
+                      <strong>{sponsorWeeklyReserve.data ? `${Number(formatEther(sponsorWeeklyReserve.data)).toLocaleString(undefined, { maximumFractionDigits: 8 })} ETH` : "0 ETH"}</strong>
+                    </div>
+                    <div>
+                      <span>Weekly Fee Pool</span>
+                      <strong>{weeklyFeePool.data ? `${Number(formatEther(weeklyFeePool.data)).toLocaleString(undefined, { maximumFractionDigits: 8 })} ETH` : "0 ETH"}</strong>
+                    </div>
+                    <div>
+                      <span>Treasury Pool</span>
+                      <strong>{treasuryPool.data ? `${Number(formatEther(treasuryPool.data)).toLocaleString(undefined, { maximumFractionDigits: 8 })} ETH` : "0 ETH"}</strong>
+                    </div>
+                    <div>
+                      <span>Total Contract Balance</span>
+                      <strong>{contractBalance.data ? `${Number(formatEther(contractBalance.data.value)).toLocaleString(undefined, { maximumFractionDigits: 8 })} ETH` : "0 ETH"}</strong>
+                    </div>
+                  </div>
+                </Card>
               <Card title="Current Round">
                 <div className="big-number">{currentRound.data?.toString() || "-"}</div>
               </Card>

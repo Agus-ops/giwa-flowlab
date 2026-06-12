@@ -2225,3 +2225,18 @@ body {
     font-size: 0.8rem;
   }
 }
+
+.protocol-reserves strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.protocol-reserves div:first-child strong,
+.protocol-reserves div:nth-child(2) strong {
+  color: #fff;
+}
+
+.protocol-reserves div:first-child,
+.protocol-reserves div:nth-child(2) {
+  border-color: rgba(248, 113, 113, 0.22);
+  background: rgba(127, 29, 29, 0.22);
+}

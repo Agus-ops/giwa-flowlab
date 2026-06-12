@@ -937,7 +937,7 @@ export default function App({ ConnectButton }) {
                 </div>
                 <div>
                   <span>Extra spin cost</span>
-                  <strong>{formatMock(extraWheelCost.data, "mGIWA")}</strong>
+                  <strong>{formatMockAmount(extraWheelCost.data ?? 0n, ASSETS[0]) + " mGIWA"}</strong>
                 </div>
               </div>
 

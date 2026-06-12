@@ -153,7 +153,7 @@ The leaderboard tracks weekly points from multiple activity categories:
 - Swap
 - Liquidity
 - APR claim
-- Quests
+- Arcade Actions
 
 Top 3 wallets can receive native rewards from the weekly pool after finalization, subject to eligibility rules.
 

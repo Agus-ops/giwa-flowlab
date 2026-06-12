@@ -264,3 +264,18 @@ Current status:
 - Vault, Arcade, Swap, Liquidity, Leaderboard, and Docs pages polished
 - GitHub Pages live
 
+## Bootstrap Funding
+
+GIWA FlowLab V2 has been bootstrapped with owner-funded native reserves for early testnet operations.
+
+| Bucket | Amount | Purpose |
+|---|---:|---|
+| Emergency Reserve | 3 ETH | Safety buffer isolated from weekly reward spending |
+| Sponsor Weekly Reserve | 3 ETH | Weekly leaderboard subsidy released through sponsor drip |
+| Sponsor Drip Cap | 0.03 ETH / week | Prevents the sponsor reserve from being drained in one round |
+
+Funding transactions:
+
+- Emergency Reserve: `0xe7254db1dba331039ba9f230f54c2cbbbf0c612b67b59de92344af621755b5e8`
+- Sponsor Weekly Reserve: `0x11934002d4279eefa50d8fe52c9adcb2df10cd4568cacc13a06d2580f25b4792`
+

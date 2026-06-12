@@ -443,6 +443,41 @@ export default function App({ ConnectButton }) {
     query: { refetchInterval: 60_000 },
   });
 
+  useEffect(() => {
+    const confirmed = receipt.isSuccess || receipt.status === "success";
+    if (!confirmed || !lastHash) return;
+
+    let cancelled = false;
+
+    async function refetchFreshState() {
+      if (cancelled) return;
+
+      await Promise.allSettled([
+        mockBalances.refetch?.(),
+        nativeAccount.refetch?.(),
+        dailyCounter.refetch?.(),
+        positions.refetch?.(),
+        pendingReward.refetch?.(),
+        top3.refetch?.(),
+        roundInfo.refetch?.(),
+        contractBalance.refetch?.(),
+      ]);
+    }
+
+    refetchFreshState();
+
+    const timers = [
+      setTimeout(refetchFreshState, 1200),
+      setTimeout(refetchFreshState, 3500),
+      setTimeout(refetchFreshState, 7000),
+    ];
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [receipt.isSuccess, receipt.status, lastHash]);
+
   const isDailyCompleted = useMemo(
     () => dailyCompleted(dailyCounter.data),
     [dailyCounter.data]

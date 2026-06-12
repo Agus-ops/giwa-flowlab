@@ -159,6 +159,23 @@ function getPairAssetIds(pairId) {
   return [0, 1];
 }
 
+const MUSD_UNIT_RAW = 10n ** 18n;
+const MBTC_UNIT_RAW = 10n ** 8n;
+const MBTC_PRICE_MUSD_RAW = 100000n;
+const MIN_LP_VALUE_MUSD_RAW = 100n * MUSD_UNIT_RAW;
+
+function toMockMUSDValue(assetOrId, amount) {
+  const asset = getAsset(assetOrId);
+  const raw = BigInt(amount || 0n);
+
+  if (asset.id === 0 || asset.id === 1) return raw;
+  if (asset.id === 2) {
+    return (raw * MBTC_PRICE_MUSD_RAW * MUSD_UNIT_RAW) / MBTC_UNIT_RAW;
+  }
+
+  return 0n;
+}
+
 function getRateHint(fromId, toId) {
   const from = Number(fromId);
   const to = Number(toId);
@@ -308,8 +325,8 @@ export default function App({ ConnectButton }) {
   const [swapTo, setSwapTo] = useState("1");
   const [swapAmount, setSwapAmount] = useState("10");
   const [pairId, setPairId] = useState("0");
-  const [liqA, setLiqA] = useState("10");
-  const [liqB, setLiqB] = useState("10");
+  const [liqA, setLiqA] = useState("50");
+  const [liqB, setLiqB] = useState("50");
   const [positionId, setPositionId] = useState("1");
   const [txLog, setTxLog] = useState("");
   const [wheelSpin, setWheelSpin] = useState(false);
@@ -542,6 +559,40 @@ export default function App({ ConnectButton }) {
   const [liqTokenAId, liqTokenBId] = getPairAssetIds(pairId);
   const liqAssetA = ASSETS.find((x) => x.id === liqTokenAId);
   const liqAssetB = ASSETS.find((x) => x.id === liqTokenBId);
+
+  const liqAmountA = useMemo(() => {
+    try {
+      return parseMockAmount(liqA, liqAssetA);
+    } catch {
+      return null;
+    }
+  }, [liqA, pairId]);
+
+  const liqAmountB = useMemo(() => {
+    try {
+      return parseMockAmount(liqB, liqAssetB);
+    } catch {
+      return null;
+    }
+  }, [liqB, pairId]);
+
+  const liqValueMUSD =
+    liqAmountA !== null && liqAmountB !== null
+      ? toMockMUSDValue(liqAssetA, liqAmountA) + toMockMUSDValue(liqAssetB, liqAmountB)
+      : 0n;
+
+  const liqBalanceA = mockBalances.data?.[liqTokenAId] ?? 0n;
+  const liqBalanceB = mockBalances.data?.[liqTokenBId] ?? 0n;
+  const invalidLiqAmount =
+    liqAmountA === null ||
+    liqAmountB === null ||
+    liqAmountA <= 0n ||
+    liqAmountB <= 0n;
+  const liqBelowMinimum = !invalidLiqAmount && liqValueMUSD < MIN_LP_VALUE_MUSD_RAW;
+  const insufficientLiqBalance =
+    !invalidLiqAmount &&
+    (BigInt(liqBalanceA || 0n) < liqAmountA || BigInt(liqBalanceB || 0n) < liqAmountB);
+  const userPositionIds = Array.isArray(positions.data) ? positions.data : [];
 
 
   const leaderboardRows = useMemo(() => {
@@ -1277,28 +1328,70 @@ export default function App({ ConnectButton }) {
               <label>Amount B ({liqAssetB?.label})</label>
               <input value={liqB} onChange={(e) => setLiqB(e.target.value)} />
 
+              <div className="lp-preview">
+                <div>
+                  <span>Total LP value</span>
+                  <strong>{formatMockAmount(liqValueMUSD, ASSETS[1])} mUSD</strong>
+                </div>
+                <div>
+                  <span>Minimum required</span>
+                  <strong>100 mUSD</strong>
+                </div>
+              </div>
+
+              {liqBelowMinimum && (
+                <p className="swap-warning">
+                  LP value is too small. Add at least 100 mUSD-equivalent total, for example 50 mGIWA + 50 mUSD.
+                </p>
+              )}
+
+              {!liqBelowMinimum && insufficientLiqBalance && (
+                <p className="swap-warning">
+                  Insufficient balance for {liqAssetA?.label} / {liqAssetB?.label}.
+                </p>
+              )}
+
               <ActionButton
-                disabled={disabled}
-                onClick={() => runWrite("Add Liquidity", "addLiquidity", [Number(pairId), parseMockAmount(liqA, liqAssetA), parseMockAmount(liqB, liqAssetB)])}
+                disabled={disabled || invalidLiqAmount || liqBelowMinimum || insufficientLiqBalance}
+                onClick={() => runWrite("Add Liquidity", "addLiquidity", [Number(pairId), liqAmountA ?? 0n, liqAmountB ?? 0n])}
               >
                 Add Liquidity
               </ActionButton>
 
-              <label>Position ID</label>
-              <input value={positionId} onChange={(e) => setPositionId(e.target.value)} />
-
-              <div className="button-row">
-                <ActionButton disabled={disabled} onClick={() => runWrite("Claim APR", "claimApr", [toWhole(positionId)])}>
-                  Claim APR
-                </ActionButton>
-                <ActionButton disabled={disabled} onClick={() => runWrite("Remove Liquidity", "removeLiquidity", [toWhole(positionId)])}>
-                  Remove
-                </ActionButton>
-              </div>
+              <p className="hint">
+                Claim and remove actions appear from on-chain position IDs after liquidity is added.
+              </p>
             </Card>
 
             <Card title="Your Positions">
-              <pre>{asText(positions.data)}</pre>
+              {userPositionIds.length > 0 ? (
+                <div className="position-list">
+                  {userPositionIds.map((id) => (
+                    <div className="position-card" key={id.toString()}>
+                      <div>
+                        <span>Position ID</span>
+                        <strong>#{id.toString()}</strong>
+                      </div>
+                      <div className="button-row">
+                        <ActionButton
+                          disabled={disabled}
+                          onClick={() => runWrite("Claim APR", "claimApr", [BigInt(id.toString())])}
+                        >
+                          Claim APR
+                        </ActionButton>
+                        <ActionButton
+                          disabled={disabled}
+                          onClick={() => runWrite("Remove Liquidity", "removeLiquidity", [BigInt(id.toString())])}
+                        >
+                          Remove
+                        </ActionButton>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="hint">No LP positions found for this wallet yet.</p>
+              )}
             </Card>
           </section>
         )}

@@ -1735,3 +1735,49 @@ body {
     opacity: 0.48;
   }
 }
+
+.lp-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.lp-preview > div,
+.position-card {
+  padding: 12px;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(248, 113, 113, 0.14);
+}
+
+.lp-preview span,
+.position-card span {
+  display: block;
+  color: #fecaca;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.lp-preview strong,
+.position-card strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.position-list {
+  display: grid;
+  gap: 12px;
+}
+
+.position-card {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .lp-preview {
+    grid-template-columns: 1fr;
+  }
+}

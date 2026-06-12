@@ -261,7 +261,10 @@ GIWA FlowLab is a testnet builder demo.
 Current status:
 
 - V2 contract deployed
+- V2 contract verified on GIWA Sepolia explorer
 - Frontend switched to V2
+- 6 ETH bootstrap funding completed
+- Emergency Reserve and Sponsor Weekly Reserve funded
 - Decimal-aware mBTC swaps working
 - Vault, Arcade, Swap, Liquidity, Leaderboard, and Docs pages polished
 - GitHub Pages live

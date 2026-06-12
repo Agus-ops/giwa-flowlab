@@ -4,6 +4,7 @@ import {
   useBalance,
   useChainId,
   useReadContract,
+  useReadContracts,
   useSwitchChain,
   useWaitForTransactionReceipt,
   useWriteContract,
@@ -174,6 +175,32 @@ function toMockMUSDValue(assetOrId, amount) {
   }
 
   return 0n;
+}
+
+function getPairLabel(pairType) {
+  return PAIRS.find((x) => x.id === Number(pairType))?.label || "Unknown pair";
+}
+
+function getPairAprLabel(pairType) {
+  const id = Number(pairType);
+  if (id === 0) return "24% APR";
+  if (id === 1) return "36% APR";
+  if (id === 2) return "18% APR";
+  return "APR";
+}
+
+function normalizeLpPosition(raw) {
+  if (!raw) return null;
+
+  return {
+    owner: raw.owner ?? raw[0],
+    amountA: BigInt(raw.amountA ?? raw[1] ?? 0n),
+    amountB: BigInt(raw.amountB ?? raw[2] ?? 0n),
+    valueMUSD: BigInt(raw.valueMUSD ?? raw[3] ?? 0n),
+    lastClaimAt: BigInt(raw.lastClaimAt ?? raw[4] ?? 0n),
+    pairType: Number(raw.pairType ?? raw[5] ?? 0),
+    active: Boolean(raw.active ?? raw[6]),
+  };
 }
 
 function getRateHint(fromId, toId) {
@@ -402,6 +429,32 @@ export default function App({ ConnectButton }) {
     query: { enabled: Boolean(address), refetchInterval: 12_000 },
   });
 
+  const positionIds = useMemo(
+    () => Array.isArray(positions.data) ? positions.data.map((id) => BigInt(id.toString())) : [],
+    [positions.data]
+  );
+
+  const lpPositionReads = useReadContracts({
+    contracts: positionIds.flatMap((id) => [
+      {
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: "lpPositions",
+        args: [id],
+      },
+      {
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: "pendingApr",
+        args: [id],
+      },
+    ]),
+    query: {
+      enabled: positionIds.length > 0,
+      refetchInterval: 12_000,
+    },
+  });
+
   const pendingReward = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
@@ -592,7 +645,21 @@ export default function App({ ConnectButton }) {
   const insufficientLiqBalance =
     !invalidLiqAmount &&
     (BigInt(liqBalanceA || 0n) < liqAmountA || BigInt(liqBalanceB || 0n) < liqAmountB);
-  const userPositionIds = Array.isArray(positions.data) ? positions.data : [];
+  const lpRows = useMemo(() => {
+    return positionIds.map((id, index) => {
+      const position = normalizeLpPosition(lpPositionReads.data?.[index * 2]?.result);
+      const pending = BigInt(lpPositionReads.data?.[index * 2 + 1]?.result ?? 0n);
+
+      return {
+        id,
+        position,
+        pending,
+      };
+    });
+  }, [positionIds, lpPositionReads.data]);
+
+  const activeLpRows = lpRows.filter((row) => row.position?.active);
+  const totalPendingLpApr = lpRows.reduce((sum, row) => sum + BigInt(row.pending || 0n), 0n);
 
 
   const leaderboardRows = useMemo(() => {
@@ -1315,85 +1382,160 @@ export default function App({ ConnectButton }) {
         )}
 
         {page === "liquidity" && (
-          <section className="grid two">
-            <Card title="Simulated Liquidity">
-              <label>Pair</label>
-              <select value={pairId} onChange={(e) => setPairId(e.target.value)}>
-                {PAIRS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-              </select>
-
-              <label>Amount A ({liqAssetA?.label})</label>
-              <input value={liqA} onChange={(e) => setLiqA(e.target.value)} />
-
-              <label>Amount B ({liqAssetB?.label})</label>
-              <input value={liqB} onChange={(e) => setLiqB(e.target.value)} />
-
-              <div className="lp-preview">
-                <div>
-                  <span>Total LP value</span>
-                  <strong>{formatMockAmount(liqValueMUSD, ASSETS[1])} mUSD</strong>
-                </div>
-                <div>
-                  <span>Minimum required</span>
-                  <strong>100 mUSD</strong>
-                </div>
+          <>
+            <section className="vault-hero liquidity-hero">
+              <div>
+                <p className="eyebrow">Simulated Liquidity</p>
+                <h2>Add mock LP, track APR, and manage on-chain position IDs.</h2>
+                <p>
+                  Liquidity is simulated with account-bound mock assets. Each LP position is stored on-chain and earns mock mGIWA APR.
+                </p>
               </div>
 
-              {liqBelowMinimum && (
-                <p className="swap-warning">
-                  LP value is too small. Add at least 100 mUSD-equivalent total, for example 50 mGIWA + 50 mUSD.
-                </p>
-              )}
+              <div className="vault-status-panel">
+                <span className="status-pill success">LP dashboard</span>
+                <strong>{formatMockAmount(totalPendingLpApr, ASSETS[0])} mGIWA</strong>
+                <small>Total pending APR across active positions</small>
+              </div>
+            </section>
 
-              {!liqBelowMinimum && insufficientLiqBalance && (
-                <p className="swap-warning">
-                  Insufficient balance for {liqAssetA?.label} / {liqAssetB?.label}.
-                </p>
-              )}
-
-              <ActionButton
-                disabled={disabled || invalidLiqAmount || liqBelowMinimum || insufficientLiqBalance}
-                onClick={() => runWrite("Add Liquidity", "addLiquidity", [Number(pairId), liqAmountA ?? 0n, liqAmountB ?? 0n])}
-              >
-                Add Liquidity
-              </ActionButton>
-
-              <p className="hint">
-                Claim and remove actions appear from on-chain position IDs after liquidity is added.
-              </p>
-            </Card>
-
-            <Card title="Your Positions">
-              {userPositionIds.length > 0 ? (
-                <div className="position-list">
-                  {userPositionIds.map((id) => (
-                    <div className="position-card" key={id.toString()}>
-                      <div>
-                        <span>Position ID</span>
-                        <strong>#{id.toString()}</strong>
-                      </div>
-                      <div className="button-row">
-                        <ActionButton
-                          disabled={disabled}
-                          onClick={() => runWrite("Claim APR", "claimApr", [BigInt(id.toString())])}
-                        >
-                          Claim APR
-                        </ActionButton>
-                        <ActionButton
-                          disabled={disabled}
-                          onClick={() => runWrite("Remove Liquidity", "removeLiquidity", [BigInt(id.toString())])}
-                        >
-                          Remove
-                        </ActionButton>
-                      </div>
-                    </div>
-                  ))}
+            <section className="grid three">
+              <Card title="Active Positions">
+                <div className="big-number">{activeLpRows.length}</div>
+              </Card>
+              <Card title="Pending APR">
+                <div className="big-number">{formatMockAmount(totalPendingLpApr, ASSETS[0])}</div>
+                <p className="hint">mGIWA claimable from LP positions</p>
+              </Card>
+              <Card title="Pair Rates">
+                <div className="info-list">
+                  <div><span>mGIWA / mUSD</span><strong>24%</strong></div>
+                  <div><span>mGIWA / mBTC</span><strong>36%</strong></div>
+                  <div><span>mUSD / mBTC</span><strong>18%</strong></div>
                 </div>
-              ) : (
-                <p className="hint">No LP positions found for this wallet yet.</p>
-              )}
-            </Card>
-          </section>
+              </Card>
+            </section>
+
+            <section className="grid two">
+              <Card title="Add Simulated Liquidity">
+                <label>Pair</label>
+                <select value={pairId} onChange={(e) => setPairId(e.target.value)}>
+                  {PAIRS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+                </select>
+
+                <label>Amount A ({liqAssetA?.label})</label>
+                <input value={liqA} onChange={(e) => setLiqA(e.target.value)} />
+
+                <label>Amount B ({liqAssetB?.label})</label>
+                <input value={liqB} onChange={(e) => setLiqB(e.target.value)} />
+
+                <div className="lp-preview">
+                  <div>
+                    <span>Total LP value</span>
+                    <strong>{formatMockAmount(liqValueMUSD, ASSETS[1])} mUSD</strong>
+                  </div>
+                  <div>
+                    <span>Minimum required</span>
+                    <strong>100 mUSD</strong>
+                  </div>
+                </div>
+
+                {liqBelowMinimum && (
+                  <p className="swap-warning">
+                    LP value is too small. Add at least 100 mUSD-equivalent total, for example 50 mGIWA + 50 mUSD.
+                  </p>
+                )}
+
+                {!liqBelowMinimum && insufficientLiqBalance && (
+                  <p className="swap-warning">
+                    Insufficient balance for {liqAssetA?.label} / {liqAssetB?.label}.
+                  </p>
+                )}
+
+                <ActionButton
+                  disabled={disabled || invalidLiqAmount || liqBelowMinimum || insufficientLiqBalance}
+                  onClick={() => runWrite("Add Liquidity", "addLiquidity", [Number(pairId), liqAmountA ?? 0n, liqAmountB ?? 0n])}
+                >
+                  Add Liquidity
+                </ActionButton>
+
+                <p className="hint">
+                  New positions appear from the contract after the transaction confirms.
+                </p>
+              </Card>
+
+              <Card title="Your LP Positions">
+                {lpRows.length > 0 ? (
+                  <div className="position-list">
+                    {lpRows.map((row) => {
+                      const position = row.position;
+                      const [assetAId, assetBId] = getPairAssetIds(position?.pairType ?? 0);
+                      const assetA = ASSETS.find((x) => x.id === assetAId);
+                      const assetB = ASSETS.find((x) => x.id === assetBId);
+
+                      return (
+                        <div className={`position-card ${position?.active ? "" : "inactive"}`} key={row.id.toString()}>
+                          <div className="position-head">
+                            <div>
+                              <span>Position ID</span>
+                              <strong>#{row.id.toString()}</strong>
+                            </div>
+                            <span className={position?.active ? "status-pill success" : "status-pill warning"}>
+                              {position?.active ? "Active" : "Closed"}
+                            </span>
+                          </div>
+
+                          <div className="position-metrics">
+                            <div>
+                              <span>Pair</span>
+                              <strong>{getPairLabel(position?.pairType ?? 0)}</strong>
+                            </div>
+                            <div>
+                              <span>APR</span>
+                              <strong>{getPairAprLabel(position?.pairType ?? 0)}</strong>
+                            </div>
+                            <div>
+                              <span>LP value</span>
+                              <strong>{formatMockAmount(position?.valueMUSD ?? 0n, ASSETS[1])} mUSD</strong>
+                            </div>
+                            <div>
+                              <span>Pending APR</span>
+                              <strong>{formatMockAmount(row.pending, ASSETS[0])} mGIWA</strong>
+                            </div>
+                            <div>
+                              <span>{assetA?.label}</span>
+                              <strong>{formatMockAmount(position?.amountA ?? 0n, assetA)}</strong>
+                            </div>
+                            <div>
+                              <span>{assetB?.label}</span>
+                              <strong>{formatMockAmount(position?.amountB ?? 0n, assetB)}</strong>
+                            </div>
+                          </div>
+
+                          <div className="button-row">
+                            <ActionButton
+                              disabled={disabled || !position?.active || row.pending <= 0n}
+                              onClick={() => runWrite("Claim APR", "claimApr", [row.id])}
+                            >
+                              Claim APR
+                            </ActionButton>
+                            <ActionButton
+                              disabled={disabled || !position?.active}
+                              onClick={() => runWrite("Remove Liquidity", "removeLiquidity", [row.id])}
+                            >
+                              Remove
+                            </ActionButton>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="hint">No LP positions found for this wallet yet.</p>
+                )}
+              </Card>
+            </section>
+          </>
         )}
 
         {page === "leaderboard" && (

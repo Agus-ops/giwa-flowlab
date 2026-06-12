@@ -1121,3 +1121,47 @@ footer {
   border: 1px solid rgba(251, 191, 36, 0.2);
   font-weight: 800;
 }
+
+.selected-balance-card {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0 2px;
+  padding: 14px;
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.16), transparent 34%),
+    rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(248, 113, 113, 0.18);
+}
+
+.selected-balance-card span {
+  color: #fecaca;
+  font-weight: 800;
+}
+
+.selected-balance-card strong {
+  color: #fff;
+  font-size: clamp(1.25rem, 4vw, 1.8rem);
+  line-height: 1.1;
+}
+
+.selected-balance-card small {
+  color: #fecaca;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.selected-balance-card.empty {
+  background:
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 34%),
+    rgba(120, 53, 15, 0.18);
+  border-color: rgba(251, 191, 36, 0.22);
+}
+
+.selected-balance-card.empty strong {
+  color: #fde68a;
+}
+
+.selected-balance-card.empty small {
+  color: #fef3c7;
+}

@@ -420,8 +420,11 @@ export default function App({ ConnectButton }) {
   const mBtcOutputTooSmall =
     quoteOutIsZero && Number(swapTo) === 2 && Number(swapFrom) !== 2;
   const swapInputBalance = mockBalances.data?.[Number(swapFrom)] ?? 0n;
+  const swapInputBalanceIsZero = BigInt(swapInputBalance || 0n) === 0n;
+  const invalidSwapAmount =
+    quoteAmount === null || BigInt(quoteAmount || 0n) <= 0n;
   const insufficientSwapBalance =
-    quoteAmount !== null && BigInt(swapInputBalance || 0) < quoteAmount;
+    quoteAmount !== null && BigInt(swapInputBalance || 0n) < quoteAmount;
 
 
   const leaderboardRows = useMemo(() => {
@@ -996,6 +999,16 @@ export default function App({ ConnectButton }) {
                 Flip pair ↕
               </button>
 
+              <div className={`selected-balance-card ${swapInputBalanceIsZero ? "empty" : ""}`}>
+                <span>Selected balance</span>
+                <strong>{formatWholeUnits(swapInputBalance)} {fromAsset?.label}</strong>
+                <small>
+                  {swapInputBalanceIsZero
+                    ? `No ${fromAsset?.label} available. Earn or swap into ${fromAsset?.label} first.`
+                    : `Available to swap from your GIWA FlowLab mock balance.`}
+                </small>
+              </div>
+
               <label>To</label>
               <div className="token-picker">
                 {ASSETS.map((x) => (
@@ -1032,12 +1045,16 @@ export default function App({ ConnectButton }) {
                 </button>
               </div>
 
-              {insufficientSwapBalance && (
+              {invalidSwapAmount && (
+                <p className="swap-warning">Enter an amount greater than 0.</p>
+              )}
+
+              {!invalidSwapAmount && insufficientSwapBalance && (
                 <p className="swap-warning">Amount exceeds available {fromAsset?.label} balance.</p>
               )}
 
               <ActionButton
-                disabled={disabled || swapFrom === swapTo || insufficientSwapBalance}
+                disabled={disabled || swapFrom === swapTo || invalidSwapAmount || insufficientSwapBalance}
                 onClick={() => runWrite("Mock Swap", "swapMock", [Number(swapFrom), Number(swapTo), toWhole(swapAmount)])}
               >
                 Swap Mock

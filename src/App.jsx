@@ -1632,10 +1632,13 @@ export default function App({ ConnectButton }) {
                 <p className="hint">mGIWA claimable from LP positions</p>
               </Card>
               <Card title="Pair Rates">
-                <div className="info-list">
-                  <div><span>mGIWA / mUSD</span><strong>24%</strong></div>
-                  <div><span>mGIWA / mBTC</span><strong>36%</strong></div>
-                  <div><span>mUSD / mBTC</span><strong>18%</strong></div>
+                <div className="pair-rate-list">
+                  {PAIRS.map((pair) => (
+                    <div key={pair.id}>
+                      <span>{pair.label}</span>
+                      <strong>{getPairAprLabel(pair.id)}</strong>
+                    </div>
+                  ))}
                 </div>
               </Card>
             </section>

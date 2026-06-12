@@ -1047,6 +1047,36 @@ export default function App({ ConnectButton }) {
         {page === "swap" && (
           <section className="grid two">
             <Card title="Mock Swap">
+              <div className="mock-balance-panel">
+                <div className="mock-balance-head">
+                  <span>Your V2 Mock Balances</span>
+                  <small>Account-bound demo balances</small>
+                </div>
+
+                <div className="mock-balance-grid">
+                  {ASSETS.map((asset) => (
+                    <button
+                      type="button"
+                      key={asset.id}
+                      className={`mock-balance-chip ${swapFrom === String(asset.id) ? "active" : ""}`}
+                      onClick={() => {
+                        const next = String(asset.id);
+                        setSwapFrom(next);
+
+                        if (next === swapTo) {
+                          const alt = ASSETS.find((token) => String(token.id) !== next);
+                          if (alt) setSwapTo(String(alt.id));
+                        }
+                      }}
+                    >
+                      <span>{asset.label}</span>
+                      <strong>{formatMockAmount(mockBalances.data?.[asset.id] ?? 0n, asset)}</strong>
+                      <small>{asset.id === 2 ? "8 decimals" : "18 decimals"}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <label>From</label>
               <div className="token-picker">
                 {ASSETS.map((x) => (

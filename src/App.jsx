@@ -923,14 +923,59 @@ export default function App({ ConnectButton }) {
           <section className="grid two">
             <Card title="Mock Swap">
               <label>From</label>
-              <select value={swapFrom} onChange={(e) => setSwapFrom(e.target.value)}>
-                {ASSETS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-              </select>
+              <div className="token-picker">
+                {ASSETS.map((x) => (
+                  <button
+                    type="button"
+                    key={x.id}
+                    className={swapFrom === String(x.id) ? "selected" : ""}
+                    onClick={() => {
+                      const next = String(x.id);
+                      setSwapFrom(next);
+
+                      if (next === swapTo) {
+                        const alt = ASSETS.find((token) => String(token.id) !== next);
+                        if (alt) setSwapTo(String(alt.id));
+                      }
+                    }}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="mini-swap-button"
+                onClick={() => {
+                  setSwapFrom(swapTo);
+                  setSwapTo(swapFrom);
+                }}
+              >
+                Flip pair ↕
+              </button>
 
               <label>To</label>
-              <select value={swapTo} onChange={(e) => setSwapTo(e.target.value)}>
-                {ASSETS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-              </select>
+              <div className="token-picker">
+                {ASSETS.map((x) => (
+                  <button
+                    type="button"
+                    key={x.id}
+                    className={swapTo === String(x.id) ? "selected" : ""}
+                    onClick={() => {
+                      const next = String(x.id);
+                      setSwapTo(next);
+
+                      if (next === swapFrom) {
+                        const alt = ASSETS.find((token) => String(token.id) !== next);
+                        if (alt) setSwapFrom(String(alt.id));
+                      }
+                    }}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+              </div>
 
               <label>Amount, whole mock units</label>
               <input value={swapAmount} onChange={(e) => setSwapAmount(e.target.value)} />

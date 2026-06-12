@@ -2157,3 +2157,71 @@ body {
     min-height: auto;
   }
 }
+
+/* Balanced nav spacing for desktop-mode and mobile */
+.nav {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: clamp(8px, 1.25vw, 14px) !important;
+  margin: 14px 0 22px !important;
+  padding: 0 4px 5px !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nav button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 10px 17px !important;
+  border-radius: 999px !important;
+  font-size: clamp(0.86rem, 1.25vw, 0.98rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Desktop-ish width: give pills breathing room */
+@media (min-width: 721px) {
+  .nav {
+    gap: 13px !important;
+  }
+
+  .nav button {
+    padding: 10px 18px !important;
+    min-height: 42px;
+  }
+}
+
+/* Normal mobile: still readable, not too fat */
+@media (max-width: 720px) {
+  .nav {
+    gap: 9px !important;
+    margin: 12px 0 17px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .nav button {
+    padding: 9px 13px !important;
+    min-height: 37px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Very narrow mobile: compact but still tappable */
+@media (max-width: 420px) {
+  .nav {
+    gap: 7px !important;
+  }
+
+  .nav button {
+    padding: 8px 11px !important;
+    min-height: 35px;
+    font-size: 0.8rem;
+  }
+}

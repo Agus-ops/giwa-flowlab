@@ -763,7 +763,7 @@ export default function App({ ConnectButton }) {
               </Card>
             </section>
 
-            <section className="grid three">
+            <section className="grid three balance-grid">
               <Card title="mGIWA">
                 <div className="big-number">{formatMockAmount(mockBalances.data?.[0] ?? 0n, ASSETS[0])}</div>
               </Card>

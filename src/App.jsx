@@ -280,6 +280,34 @@ function dailyCompleted(value) {
   return false;
 }
 
+
+
+
+function formatRoundStatus(value) {
+  return value ? "Yes" : "No";
+}
+
+function parseRoundInfo(data) {
+  if (!data) return null;
+
+  return {
+    roundId: BigInt(data.roundId ?? data[0] ?? 0n),
+    startTime: BigInt(data.startTime ?? data[1] ?? 0n),
+    endTime: BigInt(data.endTime ?? data[2] ?? 0n),
+    finalized: Boolean(data.finalized ?? data[3]),
+    canFinalize: Boolean(data.canFinalize ?? data[4]),
+  };
+}
+
+function parseNativeRewardEth(value) {
+  try {
+    const n = Number(formatEther(BigInt(value || 0n)));
+    return `${n.toLocaleString(undefined, { maximumFractionDigits: 6 })} ETH`;
+  } catch {
+    return "0 ETH";
+  }
+}
+
 function parseDailyCounter(value) {
   const v = clean(value);
   if (!v) return null;
@@ -561,6 +589,11 @@ export default function App({ ConnectButton }) {
   const dailySummary = useMemo(
     () => parseDailyCounter(dailyCounter.data),
     [dailyCounter.data]
+  );
+
+  const roundSummary = useMemo(
+    () => parseRoundInfo(roundInfo.data),
+    [roundInfo.data]
   );
 
   const fromAsset = ASSETS.find((x) => x.id === Number(swapFrom));
@@ -1662,49 +1695,108 @@ export default function App({ ConnectButton }) {
         )}
 
         {page === "leaderboard" && (
-          <section className="grid two">
-            <Card title="Weekly Top 3">
-              <div className="leaderboard-list">
-                {leaderboardRows.map((row) => (
-                  <div className="leaderboard-row" key={row.rank}>
-                    <span className="rank">#{row.rank}</span>
-                    <div>
-                      {isZeroAddress(row.user) ? (
-                        <strong>Empty slot</strong>
-                      ) : (
-                        <a
-                          href={`https://sepolia-explorer.giwa.io/address/${row.user}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {short(row.user)}
-                        </a>
-                      )}
-                      <small>{formatWeiText(row.activeDeposit)}</small>
-                    </div>
-                    <strong>{row.points} pts</strong>
-                  </div>
-                ))}
+          <>
+            <section className="vault-hero leaderboard-hero">
+              <div>
+                <p className="eyebrow">Weekly Leaderboard</p>
+                <h2>Top wallets compete through vault, arcade, swap, and liquidity activity.</h2>
+                <p>
+                  Weekly ranking is stored on-chain. Native rewards are claimable by eligible winners after the round is finalized.
+                </p>
               </div>
-              <p>Can finalize: {String(canFinalize.data || false)}</p>
-              <ActionButton
-                disabled={!isConnected || wrongChain || isPending || receipt.isLoading}
-                onClick={() => runWrite("Finalize Weekly", "finalizeWeekly")}
-              >
-                Finalize Weekly
-              </ActionButton>
-              <ActionButton
-                disabled={disabled}
-                onClick={() => runWrite("Claim Weekly Reward", "claimWeeklyReward")}
-              >
-                Claim Weekly Reward
-              </ActionButton>
-            </Card>
 
-            <Card title="Round Info">
-              <pre>{asText(roundInfo.data)}</pre>
-            </Card>
-          </section>
+              <div className="vault-status-panel">
+                <span className={roundSummary?.finalized ? "status-pill success" : "status-pill warning"}>
+                  {roundSummary?.finalized ? "Round finalized" : "Round active"}
+                </span>
+                <strong>#{roundSummary?.roundId?.toString?.() || "1"}</strong>
+                <small>Current weekly round</small>
+              </div>
+            </section>
+
+            <section className="grid three leaderboard-stats">
+              <Card title="Can Finalize">
+                <div className="big-number small">{formatRoundStatus(canFinalize.data)}</div>
+                <p className="hint">Finalization opens after the round end time.</p>
+              </Card>
+              <Card title="Your Pending Reward">
+                <div className="big-number small">{parseNativeRewardEth(pendingReward.data)}</div>
+                <p className="hint">Native reward available after finalization.</p>
+              </Card>
+              <Card title="Round Ends">
+                <div className="big-number tiny">{formatTimestamp(roundSummary?.endTime)}</div>
+                <p className="hint">Displayed from your browser locale.</p>
+              </Card>
+            </section>
+
+            <section className="grid two">
+              <Card title="Weekly Top 3">
+                <div className="leaderboard-list">
+                  {leaderboardRows.map((row) => (
+                    <div className="leaderboard-row" key={row.rank}>
+                      <span className="rank">#{row.rank}</span>
+                      <div>
+                        {isZeroAddress(row.user) ? (
+                          <strong>Empty slot</strong>
+                        ) : (
+                          <a
+                            href={`https://sepolia-explorer.giwa.io/address/${row.user}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {short(row.user)}
+                          </a>
+                        )}
+                        <small>{parseNativeRewardEth(row.activeDeposit)}</small>
+                      </div>
+                      <strong>{formatWholeUnits(row.points)} pts</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="leaderboard-actions">
+                  <ActionButton
+                    disabled={disabled || !canFinalize.data}
+                    onClick={() => runWrite("Finalize Weekly", "finalizeWeekly")}
+                  >
+                    Finalize Weekly
+                  </ActionButton>
+
+                  <ActionButton
+                    disabled={disabled}
+                    onClick={() => runWrite("Claim Weekly Reward", "claimWeeklyReward")}
+                  >
+                    Claim Weekly Reward
+                  </ActionButton>
+                </div>
+              </Card>
+
+              <Card title="Round Details">
+                <div className="info-list round-info-list">
+                  <div>
+                    <span>Round ID</span>
+                    <strong>#{roundSummary?.roundId?.toString?.() || "-"}</strong>
+                  </div>
+                  <div>
+                    <span>Start time</span>
+                    <strong>{formatTimestamp(roundSummary?.startTime)}</strong>
+                  </div>
+                  <div>
+                    <span>End time</span>
+                    <strong>{formatTimestamp(roundSummary?.endTime)}</strong>
+                  </div>
+                  <div>
+                    <span>Finalized</span>
+                    <strong>{formatRoundStatus(roundSummary?.finalized)}</strong>
+                  </div>
+                  <div>
+                    <span>Can finalize</span>
+                    <strong>{formatRoundStatus(canFinalize.data)}</strong>
+                  </div>
+                </div>
+              </Card>
+            </section>
+          </>
         )}
 
         {page === "docs" && (

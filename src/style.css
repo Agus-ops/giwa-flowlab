@@ -1992,3 +1992,77 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.leaderboard-hero {
+  margin-bottom: 16px;
+}
+
+.leaderboard-stats {
+  margin-bottom: 16px;
+}
+
+.leaderboard-stats .card {
+  min-height: 126px;
+}
+
+.leaderboard-stats .big-number.small {
+  font-size: clamp(1.35rem, 3.4vw, 2.05rem);
+}
+
+.leaderboard-stats .big-number.tiny {
+  font-size: clamp(1rem, 2.6vw, 1.45rem);
+  line-height: 1.18;
+}
+
+.leaderboard-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.round-info-list > div {
+  min-height: 58px;
+}
+
+@media (max-width: 720px) {
+  .leaderboard-stats .card {
+    min-height: auto;
+  }
+}
+
+.leaderboard-hero {
+  margin-bottom: 16px;
+}
+
+.leaderboard-stats {
+  margin-bottom: 16px;
+}
+
+.leaderboard-stats .card {
+  min-height: 126px;
+}
+
+.leaderboard-stats .big-number.small {
+  font-size: clamp(1.35rem, 3.4vw, 2.05rem);
+}
+
+.leaderboard-stats .big-number.tiny {
+  font-size: clamp(1rem, 2.6vw, 1.45rem);
+  line-height: 1.18;
+}
+
+.leaderboard-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.round-info-list > div {
+  min-height: 58px;
+}
+
+@media (max-width: 720px) {
+  .leaderboard-stats .card {
+    min-height: auto;
+  }
+}

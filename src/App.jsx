@@ -10,7 +10,7 @@ import {
   useWriteContract,
 } from "wagmi";
 import { formatEther, parseEther, parseUnits } from "viem";
-import { CONTRACT_ABI, CONTRACT_ADDRESS, GIWA_SEPOLIA, MOCK_ASSETS } from "./contract.js";
+import { CONTRACT_ABI, CONTRACT_ADDRESS, CONTRACT_VERSION, GIWA_SEPOLIA, MOCK_ASSETS } from "./contract.js";
 
 const ASSETS = MOCK_ASSETS;
 
@@ -891,6 +891,55 @@ export default function App({ ConnectButton }) {
               <Card title="mBTC">
                 <div className="big-number">{formatMockAmount(mockBalances.data?.[2] ?? 0n, ASSETS[2])}</div>
               </Card>
+            </section>
+
+            <section className="grid three home-proof-grid">
+              <Card title="V2 Engine">
+                <div className="home-mini-kicker">{CONTRACT_VERSION || "V2"} Active</div>
+                <p className="hint">
+                  Decimal-aware mock accounting: mGIWA and mUSD use 18 decimals, while mBTC uses 8 decimals.
+                </p>
+              </Card>
+
+              <Card title="Live Modules">
+                <div className="module-pill-list">
+                  <button type="button" onClick={() => setPage("vault")}>Vault</button>
+                  <button type="button" onClick={() => setPage("arcade")}>Arcade</button>
+                  <button type="button" onClick={() => setPage("swap")}>Swap</button>
+                  <button type="button" onClick={() => setPage("liquidity")}>Liquidity</button>
+                </div>
+              </Card>
+
+              <Card title="Builder Proof">
+                <div className="info-list compact">
+                  <div><span>Network</span><strong>GIWA Sepolia</strong></div>
+                  <div><span>Contract</span><strong>{short(CONTRACT_ADDRESS)}</strong></div>
+                  <div><span>Status</span><strong>Live demo</strong></div>
+                </div>
+              </Card>
+            </section>
+
+            <section className="home-flow-strip">
+              <div>
+                <span>1</span>
+                <strong>Deposit native ETH</strong>
+                <small>Mint account-bound mGIWA</small>
+              </div>
+              <div>
+                <span>2</span>
+                <strong>Play arcade loops</strong>
+                <small>Daily, wheel, scratch cards</small>
+              </div>
+              <div>
+                <span>3</span>
+                <strong>Swap mock assets</strong>
+                <small>mGIWA, mUSD, mBTC</small>
+              </div>
+              <div>
+                <span>4</span>
+                <strong>Add simulated LP</strong>
+                <small>Track APR and positions</small>
+              </div>
             </section>
           </>
         )}

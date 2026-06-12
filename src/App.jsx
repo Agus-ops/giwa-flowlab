@@ -1032,7 +1032,41 @@ export default function App({ ConnectButton }) {
         )}
 
         {page === "arcade" && (
-          <section className="grid two">
+          <>
+            <section className="vault-hero arcade-hero">
+              <div>
+                <p className="eyebrow">Arcade Engine</p>
+                <h2>Daily wheel, scratch cards, and mock-only reward loops.</h2>
+                <p>
+                  Arcade actions generate weekly points and account-bound mGIWA rewards without pretending to be a real-money casino.
+                </p>
+              </div>
+
+              <div className="vault-status-panel">
+                <span className={isDailyCompleted ? "status-pill success" : "status-pill warning"}>
+                  {isDailyCompleted ? "Daily completed" : "Daily available"}
+                </span>
+                <strong>{formatMockAmount(mockBalances.data?.[0] ?? 0n, ASSETS[0])} mGIWA</strong>
+                <small>Current arcade balance</small>
+              </div>
+            </section>
+
+            <section className="grid three arcade-stats">
+              <Card title="Arcade Balance">
+                <div className="big-number">{formatMockAmount(mockBalances.data?.[0] ?? 0n, ASSETS[0])}</div>
+                <p className="hint">mGIWA available for wheel, scratch, swap, and LP actions.</p>
+              </Card>
+              <Card title="Extra Spin Cost">
+                <div className="big-number small">{formatMockAmount(extraWheelCost.data ?? 0n, ASSETS[0])}</div>
+                <p className="hint">mGIWA cost for an extra wheel spin.</p>
+              </Card>
+              <Card title="Scratch Cost">
+                <div className="big-number small">{formatMockAmount(scratchCost.data ?? 0n, ASSETS[0])}</div>
+                <p className="hint">mGIWA cost per scratch card.</p>
+              </Card>
+            </section>
+
+            <section className="grid two">
             <Card title="Daily + Wheel">
               <div className={`wheel-visual ${wheelSpin ? "spinning" : ""}`}>
                 <div className="wheel-center">G</div>
@@ -1195,6 +1229,7 @@ export default function App({ ConnectButton }) {
               </ActionButton>
             </Card>
           </section>
+          </>
         )}
 
         {page === "swap" && (

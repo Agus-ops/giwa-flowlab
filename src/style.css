@@ -1833,3 +1833,29 @@ body {
     display: grid;
   }
 }
+
+.arcade-hero {
+  margin-bottom: 16px;
+}
+
+.arcade-hero h2 {
+  max-width: 760px;
+}
+
+.arcade-stats {
+  margin-bottom: 16px;
+}
+
+.arcade-stats .card {
+  min-height: 126px;
+}
+
+.arcade-stats .big-number.small {
+  font-size: clamp(1.55rem, 4vw, 2.35rem);
+}
+
+@media (max-width: 720px) {
+  .arcade-stats .card {
+    min-height: auto;
+  }
+}

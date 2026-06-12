@@ -1859,3 +1859,34 @@ body {
     min-height: auto;
   }
 }
+
+.swap-hero {
+  margin-bottom: 16px;
+}
+
+.swap-hero h2 {
+  max-width: 760px;
+}
+
+.swap-stats {
+  margin-bottom: 16px;
+}
+
+.swap-stats .card {
+  min-height: 126px;
+}
+
+.swap-stats .big-number.small {
+  font-size: clamp(1.35rem, 3.4vw, 2.05rem);
+  line-height: 1.08;
+}
+
+.swap-stats .hint {
+  margin-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .swap-stats .card {
+    min-height: auto;
+  }
+}

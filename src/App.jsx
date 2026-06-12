@@ -1233,7 +1233,45 @@ export default function App({ ConnectButton }) {
         )}
 
         {page === "swap" && (
-          <section className="grid two">
+          <>
+            <section className="vault-hero swap-hero">
+              <div>
+                <p className="eyebrow">V2 Swap Engine</p>
+                <h2>Decimal-aware mock swaps for mGIWA, mUSD, and mBTC.</h2>
+                <p>
+                  Swap quotes are calculated live from the V2 contract. mGIWA and mUSD use 18 decimals, while mBTC uses 8 decimals.
+                </p>
+              </div>
+
+              <div className="vault-status-panel">
+                <span className="status-pill success">Live V2 quote</span>
+                <strong>
+                  {quoteOut !== undefined ? `${formatMockAmount(quoteOut, toAsset)} ${toAsset?.label}` : "Ready"}
+                </strong>
+                <small>{fromAsset?.label} → {toAsset?.label}</small>
+              </div>
+            </section>
+
+            <section className="grid three swap-stats">
+              <Card title="Selected Route">
+                <div className="big-number small">{fromAsset?.label} → {toAsset?.label}</div>
+                <p className="hint">{getRateHint(swapFrom, swapTo)}</p>
+              </Card>
+              <Card title="You Pay">
+                <div className="big-number small">
+                  {quoteAmount !== null ? formatMockAmount(quoteAmount, fromAsset) : "0"}
+                </div>
+                <p className="hint">{fromAsset?.label} input amount</p>
+              </Card>
+              <Card title="You Receive">
+                <div className="big-number small">
+                  {quoteOut !== undefined ? formatMockAmount(quoteOut, toAsset) : "0"}
+                </div>
+                <p className="hint">{toAsset?.label} output after 1% burn fee</p>
+              </Card>
+            </section>
+
+            <section className="grid two">
             <Card title="Mock Swap">
               <div className="mock-balance-panel">
                 <div className="mock-balance-head">
@@ -1414,6 +1452,7 @@ export default function App({ ConnectButton }) {
               )}
             </Card>
           </section>
+          </>
         )}
 
         {page === "liquidity" && (

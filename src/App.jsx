@@ -921,7 +921,7 @@ export default function App({ ConnectButton }) {
             <section className="hero">
               <div>
                 <p className="eyebrow">GIWA Sepolia Builder Demo</p>
-                <h1>Native vault deposits, mock assets, quests, arcade actions, simulated LP, and weekly rewards.</h1>
+                <h1>Native vault deposits, mock assets, swaps, arcade actions, simulated LP, and protocol reserves.</h1>
                 <p>
                   GIWA FlowLab is a public testnet dApp designed to show real on-chain interaction depth without pretending to be a real-money casino or production DeFi protocol.
                 </p>

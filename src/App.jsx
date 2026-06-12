@@ -498,6 +498,11 @@ export default function App({ ConnectButton }) {
     BigInt(quoteOut || 0n) === 0n;
   const insufficientSwapBalance =
     quoteAmount !== null && BigInt(swapInputBalance || 0n) < quoteAmount;
+  const quoteCanPreview = quoteAmount !== null && swapFrom !== swapTo;
+  const quoteErrorText =
+    swapQuote.error?.shortMessage ||
+    swapQuote.error?.message ||
+    "";
 
   const [liqTokenAId, liqTokenBId] = getPairAssetIds(pairId);
   const liqAssetA = ASSETS.find((x) => x.id === liqTokenAId);
@@ -1171,8 +1176,23 @@ export default function App({ ConnectButton }) {
                     Quote is calculated live from the V2 contract. mGIWA and mUSD use 18 decimals; mBTC uses 8 decimals.
                   </p>
                 </div>
+              ) : quoteCanPreview ? (
+                <div className="quote-box">
+                  <p className="hint">
+                    {swapQuote.isFetching
+                      ? "Fetching V2 quote from contract..."
+                      : quoteErrorText
+                        ? `Quote unavailable: ${shortenHashText(quoteErrorText)}`
+                        : "Waiting for V2 quote..."}
+                  </p>
+                  {insufficientSwapBalance && (
+                    <p className="hint">
+                      Preview can still load, but swap execution needs enough {fromAsset?.label} balance.
+                    </p>
+                  )}
+                </div>
               ) : (
-                <p className="hint">Enter a valid mock amount to preview the swap output.</p>
+                <p className="hint">Enter a valid decimal amount to preview the V2 swap output.</p>
               )}
             </Card>
           </section>
